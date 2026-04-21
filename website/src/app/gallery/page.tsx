@@ -60,8 +60,8 @@ export default function GalleryPage() {
   };
 
   const layoutTransition = {
-    type: "tween",
-    ease: "circOut",
+    type: "tween" as const,
+    ease: "circOut" as const,
     duration: 0.4
   };
 
