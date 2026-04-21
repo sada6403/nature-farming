@@ -47,7 +47,7 @@ export default function GalleryPage() {
         staggerChildren: 0.1
       }
     }
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 15, scale: 0.98 },
@@ -55,9 +55,9 @@ export default function GalleryPage() {
       opacity: 1, 
       y: 0, 
       scale: 1,
-      transition: { duration: 0.4, ease: "easeOut" }
+      transition: { duration: 0.4, ease: "easeOut" as const }
     }
-  };
+  } as const;
 
   const layoutTransition = {
     type: "tween" as const,

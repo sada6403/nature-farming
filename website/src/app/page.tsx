@@ -67,16 +67,16 @@ export default function Home() {
         delayChildren: 0.3,
       },
     },
-  };
+  } as any;
 
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 1.2, ease: "easeOut" },
+      transition: { duration: 1.2, ease: "easeOut" as const },
     },
-  };
+  } as any;
 
   return (
     <div className="relative">
