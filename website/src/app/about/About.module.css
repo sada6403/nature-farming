@@ -1,0 +1,173 @@
+.aboutContainer {
+  padding-top: 0;
+}
+
+.hero {
+  position: relative;
+  height: 60vh;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #1a2e1a; /* Backup color */
+}
+
+.bgImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(8, 28, 21, 0.7) 0%,
+    rgba(8, 28, 21, 0.5) 100%
+  );
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--color-white);
+  padding: 0 2rem;
+  max-width: 800px;
+}
+
+.heroTitle {
+  font-family: var(--font-family-serif);
+  font-size: clamp(3.5rem, 8vw, 5.5rem);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  opacity: 0.95;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+.storySection {
+  padding: 6rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (min-width: 992px) {
+  .storyGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.storyContent h2 {
+  font-family: var(--font-family-serif);
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+.storyContent p {
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.imageItem {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 250px;
+  box-shadow: var(--shadow-md);
+}
+
+.imgFit {
+  object-fit: cover;
+}
+
+.valuesSection {
+  background: var(--color-earth);
+  padding: 6rem 2rem;
+}
+
+.valuesContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.valuesHeader {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.valuesHeader h2 {
+  font-family: var(--font-family-serif);
+  font-size: 2.5rem;
+  color: var(--color-primary);
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.valueCard {
+  background: var(--color-white);
+  padding: 2.5rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+}
+
+.valueCard:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  background: #f0f7f0;
+  color: var(--color-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.valueCard h3 {
+  font-family: var(--font-family-serif);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--color-text-dark);
+}
+
+.valueCard p {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}

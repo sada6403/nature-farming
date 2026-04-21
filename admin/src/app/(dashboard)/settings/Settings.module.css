@@ -1,0 +1,8 @@
+.container { display: flex; flex-direction: column; gap: 2rem; max-width: 800px; }
+.header h1 { font-family: var(--font-family-serif); color: var(--color-primary); }
+.card { background: var(--color-white); border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid var(--color-border); padding: 2rem; }
+.card h2 { font-family: var(--font-family-serif); margin-bottom: 1.5rem; color: var(--color-text-dark); border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem; }
+.formGroup { margin-bottom: 1.5rem; }
+.formGroup label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--color-text-dark); }
+.formGroup input, .formGroup textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 8px; font-family: inherit; }
+.actions { margin-top: 2rem; display: flex; justify-content: flex-end; }

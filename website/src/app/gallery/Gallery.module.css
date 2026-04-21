@@ -1,0 +1,201 @@
+.container {
+  padding-top: 8rem;
+  padding-bottom: 5rem;
+  min-height: 100vh;
+  background: var(--color-warm);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 4rem;
+  padding: 0 1rem;
+}
+
+.header h1 {
+  font-size: 3.5rem;
+  font-family: var(--font-serif);
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.header p {
+  color: var(--color-dark);
+  opacity: 0.6;
+  font-family: var(--font-luxury);
+  font-style: italic;
+  font-size: 1.125rem;
+}
+
+.main {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+
+.filterBtn {
+  padding: 0.75rem 1.75rem;
+  border-radius: 100px;
+  border: 1px solid rgba(13, 43, 29, 0.1);
+  background: white;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.filterBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: 0 10px 20px rgba(13, 43, 29, 0.15);
+}
+
+/* Masonry Layout */
+.grid {
+  columns: 1;
+  column-gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    columns: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    columns: 3;
+  }
+}
+
+.imageWrapper {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: zoom-in;
+  background: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.imageWrapper:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.imageWrapper:hover .overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.imageWrapper:hover .image {
+  transform: scale(1.1);
+}
+
+/* Custom image positioning for the masonry effect */
+.image {
+  width: 100% !important;
+  height: auto !important;
+  position: relative !important;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(13, 43, 29, 0.8), transparent);
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.overlay h4 {
+  color: white;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+}
+
+/* Lightbox Styles */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 43, 29, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.lightboxContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.lightboxImage {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.closeBtn {
+  position: absolute;
+  top: -3rem;
+  right: -3rem;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.closeBtn:hover {
+  transform: scale(1.1) rotate(90deg);
+}
+
+.lightboxInfo {
+  margin-top: 2rem;
+  text-align: center;
+  color: white;
+}
+
+.lightboxInfo h3 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lightboxInfo p {
+  opacity: 0.6;
+  font-family: var(--font-luxury);
+  font-style: italic;
+}

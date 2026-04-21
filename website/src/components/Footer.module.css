@@ -1,0 +1,158 @@
+.footer {
+  background: var(--color-primary);
+  color: #f8faf9;
+  padding: 6rem 0 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  absolute: inset-0;
+  background: radial-gradient(circle at 10% 20%, rgba(82, 183, 136, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  margin-bottom: 5rem;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 2.5fr 1fr 1fr 1.5fr;
+  }
+}
+
+.column h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  color: var(--color-accent);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  font-family: var(--font-serif);
+  margin-bottom: 2rem;
+}
+
+.logoIcon {
+  color: var(--color-accent);
+}
+
+.description {
+  line-height: 1.8;
+  color: rgba(248, 250, 249, 0.7);
+  margin-bottom: 2.5rem;
+  max-width: 400px;
+  font-style: italic;
+}
+
+.socials {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.socialIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(5px);
+}
+
+.socialIcon:hover {
+  background: var(--color-accent);
+  color: var(--color-primary);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(82, 183, 136, 0.2);
+  border-color: var(--color-accent);
+}
+
+.column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.column ul li {
+  margin-bottom: 1rem;
+}
+
+.column ul li a {
+  color: rgba(248, 250, 249, 0.6);
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.column ul li a:hover {
+  color: var(--color-accent);
+  padding-left: 8px;
+}
+
+.contactList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  color: rgba(248, 250, 249, 0.6);
+  margin-bottom: 1.25rem;
+}
+
+.icon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.bottomBar {
+  padding-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.85rem;
+  color: rgba(248, 250, 249, 0.4);
+}
+
+@media (min-width: 768px) {
+  .bottomBar {
+    flex-direction: row;
+  }
+}
+
+.adminLink a {
+  color: rgba(248, 250, 249, 0.3);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.adminLink a:hover {
+  color: var(--color-accent);
+}

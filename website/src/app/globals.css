@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0D2B1D;
+  --color-accent: #52796F;
+  --color-light: #E8F0EA;
+  --color-earth: #F5EBE0;
+  --color-warm: #FDFCF7;
+  --color-dark: #071A12;
+  --color-gold: #C5A03E;
+
+  --shadow-glass: 0 10px 40px -10px rgba(13, 43, 29, 0.08);
+}
+
+@layer base {
+  body {
+    @apply bg-warm text-dark selection:bg-accent/30 selection:text-primary leading-relaxed tracking-tight;
+    font-family: var(--font-jakarta), sans-serif;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tighter text-primary font-bold leading-tight;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-md border border-white/10 shadow-glass rounded-3xl;
+  }
+
+  .grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .nav-link {
+    @apply text-sm font-medium transition-all duration-300 hover:text-accent relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-accent hover:after:w-full after:transition-all;
+  }
+
+  .btn-premium {
+    @apply px-10 py-4 rounded-xl font-bold transition-all duration-500 flex items-center gap-2 overflow-hidden relative active:scale-95 disabled:opacity-50;
+    font-family: var(--font-jakarta), sans-serif;
+  }
+
+  .btn-premium-primary {
+    @apply bg-primary text-warm hover:bg-primary/95 shadow-xl shadow-primary/10;
+  }
+
+  .btn-premium-outline {
+    @apply border border-primary/20 text-primary hover:border-gold hover:text-gold bg-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-warm;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
+}
+
+/* Section dividers */
+.wave-divider {
+  @apply fill-warm w-full h-[60px] md:h-[100px];
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}

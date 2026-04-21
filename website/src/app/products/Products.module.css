@@ -1,0 +1,61 @@
+.productsContainer {
+  padding-top: 5rem;
+  min-height: 100vh;
+}
+
+.header {
+  background: var(--color-earth);
+  padding: 6rem 2rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-family: var(--font-family-serif);
+  font-size: 3.5rem;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.header p {
+  color: var(--color-text-muted);
+  font-size: 1.25rem;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.main {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 6rem 2rem;
+}
+
+.section {
+  margin-bottom: 6rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-family-serif);
+  font-size: 2rem;
+  color: var(--color-primary);
+  margin-bottom: 2.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: var(--color-accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 3rem;
+}
