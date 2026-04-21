@@ -85,16 +85,16 @@ export default function AboutPage() {
               <p>Registered under the Companies Act No. 7 of 2007 (PV 00274199), we are committed to absolute transparency and corporate integrity. What started as an ambitious regional initiative has now blossomed into a powerful network of over 5,000 registered farmers across the Northern and Eastern provinces.</p>
               <p>Our process is built on trust. We provide the guidance, they provide the care, and together we produce the finest natural Aloe Vera in the region. Every leaf is purchased directly from our farmers at guaranteed rates, ensuring economic stability and regional growth.</p>
             </div>
-            <div className="grid grid-cols-2 gap-6 pt-4">
-              <div className="p-6 rounded-2xl bg-white shadow-xl border border-primary/5 flex flex-col justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 pt-4">
+              <div className="p-5 md:p-6 rounded-2xl bg-white shadow-xl border border-primary/5 flex flex-col justify-center">
                 <ShieldCheck className="text-accent mb-3" size={24} />
-                <h4 className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Legally Registered</h4>
-                <p className="text-xl font-serif text-primary">PV 00274199</p>
+                <h4 className="text-[10px] md:text-sm font-bold text-primary uppercase tracking-widest mb-1">Legally Registered</h4>
+                <p className="text-lg md:text-xl font-serif text-primary">PV 00274199</p>
               </div>
-              <div className="p-6 rounded-2xl bg-white shadow-xl border border-primary/5 flex flex-col justify-center">
+              <div className="p-5 md:p-6 rounded-2xl bg-white shadow-xl border border-primary/5 flex flex-col justify-center">
                 <Globe className="text-accent mb-3" size={24} />
-                <h4 className="text-sm font-bold text-primary uppercase tracking-widest mb-1">Founded In</h4>
-                <p className="text-xl font-serif text-primary">March 2023</p>
+                <h4 className="text-[10px] md:text-sm font-bold text-primary uppercase tracking-widest mb-1">Founded In</h4>
+                <p className="text-lg md:text-xl font-serif text-primary">March 2023</p>
               </div>
             </div>
           </div>
@@ -141,16 +141,16 @@ export default function AboutPage() {
 
       {/* Sustainability Section */}
       <Section bgVariant="dark" title="Growing for the Future" subtitle="Sustainability">
-        <div className="grid md:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
           {[
             { icon: ShieldCheck, title: 'Zero Waste', desc: 'Every part of the Aloe plant is utilized, from medicinal gel to organic fertilizer.' },
             { icon: Users, title: 'Fair Trade', desc: 'Direct-to-bank payments and fixed pricing shield our farmers from middle-men.' },
             { icon: Globe, title: 'Global Reach', desc: 'Taking Sri Lanka’s natural heritage to international wellness markets.' }
           ].map((item, i) => (
-            <div key={i} className="space-y-4 border-l border-white/10 pl-8">
+            <div key={i} className="space-y-4 border-l border-white/10 pl-6 md:pl-8">
               <item.icon size={28} className="text-accent" />
-              <h4 className="text-xl font-bold text-warm">{item.title}</h4>
-              <p className="text-sm text-warm/60 italic leading-relaxed">{item.desc}</p>
+              <h4 className="text-lg md:text-xl font-bold text-warm">{item.title}</h4>
+              <p className="text-xs md:text-sm text-warm/60 italic leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>

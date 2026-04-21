@@ -96,7 +96,7 @@ export default function Home() {
               <motion.span variants={itemVariants} className="inline-block px-5 py-1.5 rounded-full border border-primary/10 text-primary font-bold text-[10px] uppercase tracking-[0.4em] mb-10 bg-white/30 backdrop-blur-sm">
                 Cultivating Excellence Since 2018
               </motion.span>
-              <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl lg:text-8xl font-serif text-primary mb-8 leading-[0.85] tracking-tighter">
+              <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif text-primary mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter">
                 Pure Nature.<br/>
                 <span className="text-accent italic font-light">Trusted Roots.</span>
               </motion.h1>
@@ -145,19 +145,19 @@ export default function Home() {
         title="Revolutionizing Aloe Vera in Sri Lanka"
         bgVariant="warm"
       >
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
-            <p className="text-2xl text-dark/60 leading-relaxed font-luxury italic">
-              Nature Farming isn't just a company; it's a movement towards organic resilience and farmer empowerment.
-            </p>
-            <div className="space-y-4 text-dark/80">
-              <p>Based in the fertile lands of Kurunegala, we've pioneered a model where quality meets compassion. We provide the seeds of success to our farmers and deliver the fruits of nature to your doorstep.</p>
-              <p>Our 100% natural Aloe Vera soaps and upcoming wellness range are crafted to preserve the raw healing power of Sri Lanka's finest harvest.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <div className="space-y-6 md:space-y-8">
+              <p className="text-xl md:text-2xl text-dark/60 leading-relaxed font-luxury italic">
+                Nature Farming isn't just a company; it's a movement towards organic resilience and farmer empowerment.
+              </p>
+              <div className="space-y-4 text-dark/80 text-sm md:text-base">
+                <p>Based in the fertile lands of Kurunegala, we've pioneered a model where quality meets compassion. We provide the seeds of success to our farmers and deliver the fruits of nature to your doorstep.</p>
+                <p>Our 100% natural Aloe Vera soaps and upcoming wellness range are crafted to preserve the raw healing power of Sri Lanka's finest harvest.</p>
+              </div>
+              <Link href="/about" className="inline-flex items-center gap-2 text-primary font-bold border-b-2 border-accent pb-1 hover:gap-4 transition-all group">
+                Read Our Full Story <ArrowRight size={18} className="text-accent group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-            <Link href="/about" className="inline-flex items-center gap-2 text-primary font-bold border-b-2 border-accent pb-1 hover:gap-4 transition-all group">
-              Read Our Full Story <ArrowRight size={18} className="text-accent group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
           <motion.div 
             whileHover={{ scale: 1.02 }}
             className="relative rounded-3xl overflow-hidden glass-card p-4 aspect-[4/5] md:aspect-square"

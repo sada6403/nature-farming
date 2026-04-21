@@ -35,8 +35,8 @@ const Navbar = () => {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
       <div className={styles.container}>
         <Link href="/" className={styles.logo}>
-          <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={45} height={45} className="object-contain rounded-xl" />
-          <span>Nature Farming</span>
+          <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={40} height={40} className="object-contain rounded-lg md:w-[45px] md:h-[45px]" />
+          <span className="text-lg sm:text-xl md:text-2xl">Nature Farming</span>
         </Link>
 
         {/* Desktop Links */}
@@ -73,15 +73,21 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className={styles.mobileMenu}
           >
-            {navLinks.map((link) => (
-              <Link
+            {navLinks.map((link, i) => (
+              <motion.div
                 key={link.name}
-                href={link.path}
-                className={`${styles.mobileLink} ${pathname === link.path ? styles.activeMobile : ''}`}
-                onClick={() => setIsOpen(false)}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
               >
-                {link.name}
-              </Link>
+                <Link
+                  href={link.path}
+                  className={`${styles.mobileLink} ${pathname === link.path ? styles.activeMobile : ''}`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              </motion.div>
             ))}
             <Link href="/farmer-join" className={styles.mobileCta} onClick={() => setIsOpen(false)}>
               Join as a Farmer
