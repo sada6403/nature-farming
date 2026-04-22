@@ -25,7 +25,7 @@ const Footer = () => {
           <div className={styles.column}>
             <Link href="/" className={styles.logo}>
               <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={40} height={40} className="object-contain mr-2 rounded-lg" />
-              <span>{settings?.company_name || 'Nature Farming'}</span>
+              <span>{settings?.company_name || 'Natural Plantation (Pvt) Ltd'}</span>
             </Link>
             <p className={styles.description}>
               Empowering Sri Lankan agriculture through the healing power of 100% natural Aloe Vera.
@@ -95,17 +95,17 @@ const Footer = () => {
               </li>
               <li>
                 <Mail size={18} className={styles.icon} />
-                <span>{settings?.primary_email || 'info@naturalfarming.lk'}</span>
+                <span>{settings?.primary_email || 'info@naturalplantation.lk'}</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className={styles.bottomBar}>
-          <p>© {new Date().getFullYear()} Nature Farming (Pvt) Ltd. All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} Natural Plantation (Pvt) Ltd. All Rights Reserved.</p>
           <div className="flex items-center gap-4 text-[11px] text-white/40 uppercase tracking-widest font-bold">
             <span className="h-px w-8 bg-white/10 hidden md:block" />
-            <span>Reg No: PV 00274199</span>
+            <span>Reg No: PV 00334432</span>
           </div>
         </div>
       </div>

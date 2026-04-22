@@ -63,19 +63,28 @@ export default function Home() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
+        staggerChildren: 0.18,
+        delayChildren: 0.4,
       },
     },
   } as any;
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 1.2, ease: "easeOut" as const },
+      transition: { duration: 1.0, ease: [0.16, 1, 0.3, 1] as any },
     },
+  } as any;
+
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 24 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as any, delay: i * 0.12 },
+    }),
   } as any;
 
   return (
@@ -83,10 +92,18 @@ export default function Home() {
       {/* 3D Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden bg-warm">
         <HeroScene />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-warm/30 to-warm pointer-events-none" />
+        {/* Left-side text readability only — right stays clear so plant colours show */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'linear-gradient(to right, rgba(253,252,247,0.90) 0%, rgba(253,252,247,0.65) 32%, rgba(253,252,247,0.10) 52%, transparent 66%)'
+        }} />
+        {/* Bottom fade only */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
+          height: '14%',
+          background: 'linear-gradient(to top, rgba(253,252,247,1) 0%, transparent 100%)'
+        }} />
         
         <div className="container mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[70vh]">
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -96,11 +113,11 @@ export default function Home() {
               <motion.span variants={itemVariants} className="inline-block px-5 py-1.5 rounded-full border border-primary/10 text-primary font-bold text-[10px] uppercase tracking-[0.4em] mb-10 bg-white/30 backdrop-blur-sm">
                 Cultivating Excellence Since 2018
               </motion.span>
-              <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif text-primary mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter">
+              <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif text-primary mb-6 leading-[1.1] md:leading-[0.85] tracking-tighter">
                 Pure Nature.<br/>
                 <span className="text-accent italic font-light">Trusted Roots.</span>
               </motion.h1>
-              <motion.p variants={itemVariants} className="max-w-xl mx-auto lg:mx-0 text-base md:text-lg text-dark/60 mb-16 font-luxury italic leading-relaxed">
+              <motion.p variants={itemVariants} className="max-w-xl mx-auto lg:mx-0 text-base md:text-lg text-dark/60 mb-10 font-luxury italic leading-relaxed">
                 Empowering Sri Lankan agriculture through premium Aloe Vera cultivation, sustainable practices, and a thriving farmer network.
               </motion.p>
               <motion.div variants={itemVariants} className="flex flex-col md:flex-row gap-5 justify-center lg:justify-start items-center">
@@ -118,13 +135,21 @@ export default function Home() {
           </div>
         </div>
 
-        <motion.div 
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30"
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.8, duration: 1 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
-          <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-primary">Scroll</span>
-          <div className="w-px h-12 bg-primary" />
+          <span className="text-[9px] uppercase tracking-[0.5em] font-bold text-primary/30">Scroll</span>
+          <div className="relative w-px h-14 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/40 to-transparent" />
+            <motion.div
+              animate={{ y: ['0%', '100%'] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute top-0 w-full h-1/2 bg-gradient-to-b from-primary/60 to-transparent"
+            />
+          </div>
         </motion.div>
       </section>
 
@@ -190,12 +215,17 @@ export default function Home() {
             { title: 'Branch Support', icon: MapPin, desc: 'Assigned branches across island providing local assistance.' },
             { title: 'Sri Lanka Grown', icon: Flag, desc: 'Proudly cultivating and manufacturing in the heart of Ceylon.' }
           ].map((item, i) => (
-            <motion.div 
+            <motion.div
               key={i}
-              whileHover={{ y: -10 }}
+              custom={i}
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              whileHover={{ y: -8, transition: { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] } }}
               className="glass-card p-8 flex flex-col items-center text-center group"
             >
-              <div className="mb-6 p-4 rounded-full bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+              <div className="mb-6 p-4 rounded-full bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 group-hover:shadow-lg group-hover:shadow-primary/20">
                 <item.icon size={32} />
               </div>
               <h3 className="text-xl font-bold mb-4">{item.title}</h3>
@@ -207,7 +237,7 @@ export default function Home() {
 
       {/* 6. Products Showcase (Segmented) */}
       <Section title="Premium Natural Creations" subtitle="The Harvest" bgVariant="warm" id="products">
-        <div className="mb-20">
+        <div className="mb-12">
           <div className="flex items-center gap-4 mb-8">
             <h3 className="text-2xl font-serif text-primary">Handcrafted Wellness</h3>
             <div className="h-px flex-1 bg-primary/10" />
@@ -236,7 +266,7 @@ export default function Home() {
 
       {/* 8. How It Works (Timeline) */}
       <Section title="How We Grow Together" subtitle="The Journey" bgVariant="dark">
-        <div className="relative mt-20 max-w-4xl mx-auto">
+        <div className="relative mt-12 max-w-4xl mx-auto">
           <div className="absolute top-0 bottom-0 left-[21px] md:left-1/2 w-px bg-white/10" />
           {[
             { step: '01', title: 'Register Interest', desc: 'Fill out our online inquiry form or visit your nearest branch.' },
@@ -245,16 +275,23 @@ export default function Home() {
             { step: '04', title: 'The Harvest', desc: 'When mature, we buy your entire Aloe Vera harvest directly.' },
             { step: '05', title: 'Direct Payment', desc: 'Secure and direct payments made to you for the delivered yield.' }
           ].map((item, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className={`flex items-start mb-20 relative ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40, y: 10 }}
+              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1], delay: i * 0.08 }}
+              className={`flex items-start mb-12 relative ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}
             >
-              <div className="flex-none bg-accent text-primary w-12 h-12 rounded-full flex items-center justify-center font-bold relative z-10 shadow-[0_0_20px_rgba(82,183,136,0.3)]">
+              <motion.div
+                initial={{ scale: 0.6, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: i * 0.08 + 0.2 }}
+                className="flex-none bg-accent text-primary w-12 h-12 rounded-full flex items-center justify-center font-bold relative z-10 shadow-[0_0_30px_rgba(82,121,111,0.4)]"
+              >
                 {item.step}
-              </div>
+              </motion.div>
               <div className={`flex-1 pt-2 ${i % 2 === 0 ? 'pl-8 md:pl-16' : 'pl-8 pr-16 md:pl-0 md:pr-16 md:text-right'}`}>
                 <h4 className="text-xl font-bold mb-2 text-warm">{item.title}</h4>
                 <p className="text-warm/60 text-sm italic">{item.desc}</p>
@@ -266,6 +303,9 @@ export default function Home() {
 
       {/* 12. Final CTA Banner */}
       <section className="py-24 bg-earth/20 relative overflow-hidden border-t border-primary/5">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl" />
+        </div>
         <div className="container mx-auto px-6 relative z-10 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

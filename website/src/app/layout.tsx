@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
-      <body className={`${jakarta.variable} ${playfair.variable} ${cormorant.variable} font-sans antialiased bg-warm`}>
+      <body suppressHydrationWarning className={`${jakarta.variable} ${playfair.variable} ${cormorant.variable} font-sans antialiased bg-warm`}>
         <div className="grain-overlay" />
         <Navbar />
         <main>{children}</main>
