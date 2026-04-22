@@ -51,6 +51,15 @@ const SoilIsland = () => {
 };
 
 export default function HeroScene() {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <div className="absolute inset-0 z-0">
       <Canvas
@@ -78,14 +87,14 @@ export default function HeroScene() {
         <pointLight position={[5, -5, 10]} intensity={0.4} color="#5c3c24" />
 
         <Suspense fallback={null}>
-          <group position={[4.5, -1.8, 0]}>
+          <group position={[isMobile ? 0 : 4.5, isMobile ? -1.2 : -1.8, 0]}>
             {/* Land is static (no Float) and unstructured */}
             <SoilIsland />
 
             {/* Plants have subtle swaying/floating independently */}
             <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
               {/* One very large plant, others smaller */}
-              <AloePlant scale={1.8} position={[0, -1.0, 0]} />
+              <AloePlant scale={isMobile ? 1.4 : 1.8} position={[0, -1.0, 0]} />
               <AloePlant scale={0.75} position={[3.2, -1.1, 1.8]} />
               <AloePlant scale={0.85} position={[-2.8, -1.1, 2.2]} />
               <AloePlant scale={0.65} position={[1.4, -1.1, -3.2]} />
@@ -96,7 +105,7 @@ export default function HeroScene() {
           <Environment preset="park" />
 
           <ContactShadows
-            position={[4.5, -2.5, 0]}
+            position={[isMobile ? 0 : 4.5, -2.5, 0]}
             opacity={0.35}
             scale={15}
             blur={3}

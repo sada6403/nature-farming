@@ -108,23 +108,23 @@ export default function Home() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="text-center lg:text-left pt-20 lg:pt-0"
+              className="text-center lg:text-left pt-0 lg:pt-0"
             >
-              <motion.span variants={itemVariants} className="inline-block px-5 py-1.5 rounded-full border border-primary/10 text-primary font-bold text-[10px] uppercase tracking-[0.4em] mb-10 bg-white/30 backdrop-blur-sm">
+              <motion.span variants={itemVariants} className="inline-block px-5 py-1.5 rounded-full border border-primary/10 text-primary font-bold text-[9px] uppercase tracking-[0.3em] mb-6 bg-white/30 backdrop-blur-sm">
                 Cultivating Excellence Since 2018
               </motion.span>
-              <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif text-primary mb-6 leading-[1.1] md:leading-[0.85] tracking-tighter">
+              <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif text-primary mb-4 leading-[1.1] md:leading-[0.85] tracking-tighter">
                 Pure Nature.<br/>
                 <span className="text-accent italic font-light">Trusted Roots.</span>
               </motion.h1>
-              <motion.p variants={itemVariants} className="max-w-xl mx-auto lg:mx-0 text-base md:text-lg text-dark/60 mb-10 font-luxury italic leading-relaxed">
+              <motion.p variants={itemVariants} className="max-w-md mx-auto lg:mx-0 text-sm md:text-lg text-dark/60 mb-8 font-luxury italic leading-relaxed px-4 md:px-0">
                 Empowering Sri Lankan agriculture through premium Aloe Vera cultivation, sustainable practices, and a thriving farmer network.
               </motion.p>
-              <motion.div variants={itemVariants} className="flex flex-col md:flex-row gap-5 justify-center lg:justify-start items-center">
-                <Link href="/products" className="btn-premium btn-premium-primary text-[11px] tracking-[0.2em] uppercase px-10">
+              <motion.div variants={itemVariants} className="flex flex-col md:flex-row gap-4 justify-center lg:justify-start items-center">
+                <Link href="/products" className="btn-premium btn-premium-primary text-[10px] tracking-[0.2em] uppercase px-8 w-full md:w-auto">
                   Explore Collection
                 </Link>
-                <Link href="/farmer-join" className="btn-premium btn-premium-outline text-[11px] tracking-[0.2em] uppercase px-10">
+                <Link href="/farmer-join" className="btn-premium btn-premium-outline text-[10px] tracking-[0.2em] uppercase px-8 w-full md:w-auto">
                   Join Network
                 </Link>
               </motion.div>
