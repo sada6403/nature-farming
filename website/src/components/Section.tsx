@@ -15,7 +15,7 @@ interface SectionProps {
   centered?: boolean;
 }
 
-const titleVariants = {
+const titleVariants: any = {
   hidden: { opacity: 0, y: 32 },
   visible: {
     opacity: 1,
@@ -24,7 +24,7 @@ const titleVariants = {
   },
 };
 
-const subtitleVariants = {
+const subtitleVariants: any = {
   hidden: { opacity: 0, x: -12 },
   visible: {
     opacity: 1,
@@ -33,7 +33,7 @@ const subtitleVariants = {
   },
 };
 
-const contentVariants = {
+const contentVariants: any = {
   hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
