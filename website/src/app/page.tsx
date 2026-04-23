@@ -63,27 +63,27 @@ export default function Home() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.18,
-        delayChildren: 0.4,
+        staggerChildren: 0.1, // Faster stagger
+        delayChildren: 0.2,
       },
     },
   } as any;
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 }, // Smaller displacement
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 1.0, ease: [0.16, 1, 0.3, 1] as any },
+      transition: { duration: 0.8, ease: 'easeOut' }, // Simpler easing
     },
   } as any;
 
   const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 24 },
+    hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1] as any, delay: i * 0.12 },
+      transition: { duration: 0.6, ease: 'easeOut', delay: i * 0.08 },
     }),
   } as any;
 

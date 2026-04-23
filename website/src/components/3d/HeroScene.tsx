@@ -1,8 +1,7 @@
-'use client';
-
 import React, { Suspense, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { PerspectiveCamera, Environment, ContactShadows, AdaptiveDpr, Float } from '@react-three/drei';
+import Image from 'next/image';
 import AloePlant from './AloePlant';
 import ParticleField from './ParticleField';
 import * as THREE from 'three';
@@ -51,7 +50,7 @@ const SoilIsland = () => {
 };
 
 export default function HeroScene() {
-  const [isMobile, setIsMobile] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -60,11 +59,31 @@ export default function HeroScene() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Performance optimization: Don't render Canvas at all on mobile
+  if (isMobile === true) {
+    return (
+      <div className="absolute inset-0 z-0 flex items-center justify-end overflow-hidden opacity-40">
+        <div className="relative w-full h-full max-w-[600px] translate-x-1/4 scale-125">
+          <Image 
+            src="/aloe_plant_1776648136140.png" 
+            alt="Nature" 
+            fill 
+            className="object-contain"
+            priority
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Prevent flash before JS hydrates
+  if (isMobile === null) return null;
+
   return (
     <div className="absolute inset-0 z-0">
       <Canvas
         shadows="soft"
-        gl={{ antialias: true, alpha: true }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
         <AdaptiveDpr pixelated />
@@ -79,7 +98,7 @@ export default function HeroScene() {
           position={[10, 20, 10]}
           intensity={1.5}
           castShadow
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize={[1024, 1024]}
           shadow-bias={-0.0001}
         />
 
@@ -87,14 +106,10 @@ export default function HeroScene() {
         <pointLight position={[5, -5, 10]} intensity={0.4} color="#5c3c24" />
 
         <Suspense fallback={null}>
-          <group position={[isMobile ? 0 : 4.5, isMobile ? -1.2 : -1.8, 0]}>
-            {/* Land is static (no Float) and unstructured */}
+          <group position={[4.5, -1.8, 0]}>
             <SoilIsland />
-
-            {/* Plants have subtle swaying/floating independently */}
             <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
-              {/* One very large plant, others smaller */}
-              <AloePlant scale={isMobile ? 1.4 : 1.8} position={[0, -1.0, 0]} />
+              <AloePlant scale={1.8} position={[0, -1.0, 0]} />
               <AloePlant scale={0.75} position={[3.2, -1.1, 1.8]} />
               <AloePlant scale={0.85} position={[-2.8, -1.1, 2.2]} />
               <AloePlant scale={0.65} position={[1.4, -1.1, -3.2]} />
@@ -105,7 +120,7 @@ export default function HeroScene() {
           <Environment preset="park" />
 
           <ContactShadows
-            position={[isMobile ? 0 : 4.5, -2.5, 0]}
+            position={[4.5, -2.5, 0]}
             opacity={0.35}
             scale={15}
             blur={3}
