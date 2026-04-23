@@ -90,7 +90,7 @@ export default function Home() {
   return (
     <div className="relative">
       {/* 3D Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden bg-warm">
+      <section className="relative min-h-[90vh] lg:h-screen flex items-start lg:items-center justify-center overflow-hidden bg-warm pt-20 lg:pt-0">
         <HeroScene />
         {/* Left-side text readability only — right stays clear so plant colours show */}
         <div className="absolute inset-0 pointer-events-none" style={{
@@ -102,13 +102,13 @@ export default function Home() {
           background: 'linear-gradient(to top, rgba(253,252,247,1) 0%, transparent 100%)'
         }} />
         
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[70vh]">
+        <div className="container mx-auto px-6 relative z-10 pt-10 md:pt-20 lg:pt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="text-center lg:text-left pt-0 lg:pt-0"
+              className="text-center lg:text-left"
             >
               <motion.span variants={itemVariants} className="inline-block px-5 py-1.5 rounded-full border border-primary/10 text-primary font-bold text-[9px] uppercase tracking-[0.3em] mb-6 bg-white/30 backdrop-blur-sm">
                 Cultivating Excellence Since 2018
