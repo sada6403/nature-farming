@@ -12,14 +12,19 @@ import {
   Settings, 
   Image as ImageIcon, 
   LogOut,
-  Leaf,
   ChevronRight,
-  Tv
+  Tv,
+  X
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import styles from './Sidebar.module.css';
 
-const Sidebar = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -39,34 +44,45 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logo}>
-        <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={32} height={32} className="object-contain mr-2" />
-        <span>Nature Admin</span>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && <div className={styles.overlay} onClick={onClose} />}
 
-      <nav className={styles.nav}>
-        {menuItems.map((item) => {
-          const isActive = pathname === item.path;
-          return (
-            <Link 
-              key={item.path} 
-              href={item.path}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
-            >
-              <item.icon size={20} />
-              <span>{item.name}</span>
-              {isActive && <ChevronRight size={16} className={styles.activeIndicator} />}
-            </Link>
-          );
-        })}
-      </nav>
+      <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+        <div className={styles.logo}>
+          <div className="flex items-center">
+            <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={32} height={32} className="object-contain mr-2" />
+            <span>Nature Admin</span>
+          </div>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={24} />
+          </button>
+        </div>
 
-      <button onClick={handleLogout} className={styles.logoutBtn}>
-        <LogOut size={20} />
-        <span>Logout</span>
-      </button>
-    </aside>
+        <nav className={styles.nav}>
+          {menuItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <Link 
+                key={item.path} 
+                href={item.path}
+                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                onClick={() => onClose()}
+              >
+                <item.icon size={20} />
+                <span>{item.name}</span>
+                {isActive && <ChevronRight size={16} className={styles.activeIndicator} />}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <button onClick={handleLogout} className={styles.logoutBtn}>
+          <LogOut size={20} />
+          <span>Logout</span>
+        </button>
+      </aside>
+    </>
   );
 };
 

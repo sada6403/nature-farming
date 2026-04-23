@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Menu } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import Sidebar from '@/components/Sidebar';
 import styles from './dashboard.module.css';
@@ -12,6 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,9 +53,16 @@ export default function DashboardLayout({
 
   return (
     <div className={styles.dashboardWrapper}>
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
       <main className={styles.mainContent}>
         <header className={styles.header}>
+          <button 
+            className={styles.mobileMenuBtn}
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu size={24} />
+          </button>
           <h2>Nature Farming Administration</h2>
         </header>
         <div className={styles.pageContent}>

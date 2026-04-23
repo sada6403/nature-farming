@@ -6,9 +6,16 @@
 
 .mainContent {
   flex: 1;
-  margin-left: 280px;
+  margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .mainContent {
+    margin-left: 0;
+  }
 }
 
 .header {
@@ -21,18 +28,44 @@
   position: sticky;
   top: 0;
   z-index: 90;
+  gap: 1rem;
 }
 
-.header h2 {
-  font-family: var(--font-family-serif);
-  font-size: 1.5rem;
+.mobileMenuBtn {
+  display: none;
+  background: none;
+  border: none;
   color: var(--color-primary);
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: -0.5rem;
+}
+
+@media (max-width: 1024px) {
+  .header {
+    padding: 0 1.5rem;
+    height: 64px;
+  }
+  
+  .mobileMenuBtn {
+    display: block;
+  }
+
+  .header h2 {
+    font-size: 1.1rem;
+  }
 }
 
 .pageContent {
   padding: 3rem;
   max-width: 1400px;
   width: 100%;
+}
+
+@media (max-width: 768px) {
+  .pageContent {
+    padding: 1.5rem;
+  }
 }
 
 /* Stats Cards */

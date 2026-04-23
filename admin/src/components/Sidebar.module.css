@@ -1,8 +1,8 @@
 .sidebar {
-  width: 280px;
+  width: var(--sidebar-width);
   height: 100vh;
   background: var(--color-white);
-  border-right: 1px solid var(--color-earth-dark);
+  border-right: 1px solid var(--color-border);
   padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -10,11 +10,23 @@
   left: 0;
   top: 0;
   z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
 }
 
 .logo {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   color: var(--color-primary);
   font-family: var(--font-family-serif);
@@ -22,6 +34,20 @@
   font-weight: 700;
   margin-bottom: 3rem;
   padding-left: 0.5rem;
+}
+
+.closeBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .closeBtn {
+    display: block;
+  }
 }
 
 .nav {
@@ -76,4 +102,21 @@
 
 .logoutBtn:hover {
   background: #fff1f1;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 95;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

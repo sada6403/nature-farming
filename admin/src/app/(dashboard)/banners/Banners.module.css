@@ -5,10 +5,25 @@
   padding: 2rem;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}
+
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 1.5rem;
+  }
 }
 
 .header h1 {
@@ -144,6 +159,14 @@
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .modalContent {
+    padding: 1.5rem;
+    max-height: 100vh;
+    border-radius: 0;
+  }
 }
 
 .modalHeader {
