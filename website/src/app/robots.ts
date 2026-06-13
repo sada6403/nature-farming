@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: '/api/',
     },
-    sitemap: 'https://farming.nfplantation.com/sitemap.xml',
+    sitemap: 'https://naturefarming.lk/sitemap.xml',
   }
 }
