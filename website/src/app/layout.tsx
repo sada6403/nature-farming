@@ -32,7 +32,9 @@ export const metadata: Metadata = {
   description:
     "Nature Farming is Sri Lanka's leading Aloe Vera cultivation company. Premium natural soaps, wellness products, and a thriving farmer network across Kurunegala. Join 5,000+ farmers today.",
   keywords: [
+    "Nature Farming",
     "Nature Farming Sri Lanka",
+    "naturefarming.lk",
     "Aloe Vera Sri Lanka",
     "Aloe Vera cultivation Sri Lanka",
     "natural products Sri Lanka",
@@ -42,9 +44,9 @@ export const metadata: Metadata = {
     "Kurunegala farming",
     "Sri Lanka agriculture",
     "natural wellness products",
-    "naturefarming.lk",
     "aloe vera leaves Sri Lanka",
     "organic aloe vera",
+    "NF Plantation Sri Lanka",
   ],
   authors: [{ name: "Nature Farming", url: SITE_URL }],
   creator: "Nature Farming",
@@ -87,6 +89,13 @@ export const metadata: Metadata = {
     images: ["/aloe_farm_hero_1776647052615.png"],
     creator: "@naturefarming",
   },
+  icons: {
+    icon: [
+      { url: '/nature-farming-official-v2.png', type: 'image/png', sizes: 'any' },
+    ],
+    shortcut: '/nature-farming-official-v2.png',
+    apple: { url: '/nature-farming-official-v2.png', type: 'image/png' },
+  },
   alternates: {
     canonical: SITE_URL,
   },
@@ -99,6 +108,51 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#2D5016",
+};
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: "Nature Farming",
+  url: SITE_URL,
+  description: "Sri Lanka's #1 Aloe Vera Cultivation & Natural Products company",
+  publisher: {
+    "@id": `${SITE_URL}/#organization`,
+  },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/?s={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: "Nature Farming",
+  alternateName: ["Nature Farming Sri Lanka", "NF Plantation", "naturefarming.lk"],
+  url: SITE_URL,
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/nature-farming-official-v2.png`,
+    width: 512,
+    height: 512,
+  },
+  image: `${SITE_URL}/nature-farming-official-v2.png`,
+  description: "Sri Lanka's leading Aloe Vera cultivation and natural wellness products company, empowering farmers since 2018.",
+  foundingDate: "2018",
+  areaServed: "Sri Lanka",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Kurunegala",
+    addressCountry: "LK",
+  },
+  sameAs: [SITE_URL],
 };
 
 const localBusinessSchema = {
@@ -156,6 +210,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}

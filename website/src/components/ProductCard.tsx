@@ -21,7 +21,10 @@ interface ProductCardProps {
   className?: string;
 }
 
+const FALLBACK_IMAGE = '/aloe_soap_product_1776647089967.png';
+
 export default function ProductCard({ product, className }: ProductCardProps) {
+  const [imgSrc, setImgSrc] = React.useState(product.image || FALLBACK_IMAGE);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -70,10 +73,11 @@ export default function ProductCard({ product, className }: ProductCardProps) {
       >
         <div className="relative h-64 overflow-hidden">
           <Image
-            src={product.image}
+            src={imgSrc}
             alt={product.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-110"
+            onError={() => setImgSrc(FALLBACK_IMAGE)}
           />
           {product.category && (
             <span className="absolute left-4 top-4 rounded-full bg-primary/90 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md">

@@ -35,7 +35,7 @@ const Navbar = () => {
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
       <div className={styles.container}>
         <Link href="/" className={styles.logo}>
-          <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={40} height={40} className="object-contain rounded-lg md:w-[45px] md:h-[45px]" />
+          <Image src="/nature-farming-official-v2.png" alt="Nature Farming" width={40} height={40} priority className="object-contain rounded-lg md:w-[45px] md:h-[45px]" />
           <span className="text-lg sm:text-xl md:text-2xl">Nature Farming</span>
         </Link>
 
