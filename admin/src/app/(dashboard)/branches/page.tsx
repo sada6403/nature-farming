@@ -1,14 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import styles from './Branches.module.css';
 
 export default function BranchesManager() {
   const [branches, setBranches] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<any>(null);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -26,39 +25,32 @@ export default function BranchesManager() {
     fetchBranches();
   }, []);
 
-  // Removed dropdown click-outside logic as dropdown is being replaced with direct buttons
-
   const fetchBranches = async () => {
     setLoading(true);
-    const { data } = await supabase.from('branches').select('*').order('created_at');
-    if (data) setBranches(data);
-    setLoading(false);
+    try {
+      const data = await adminApi.getBranches();
+      if (data) setBranches(data);
+    } catch (err: any) {
+      console.error('Fetch branches error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingBranch) {
-      // Update
-      const { error } = await supabase
-        .from('branches')
-        .update(formData)
-        .eq('id', editingBranch.id);
-        
-      if (!error) {
+    try {
+      if (editingBranch) {
+        const updated = await adminApi.updateBranch(editingBranch.id, formData);
         setBranches(branches.map(b => b.id === editingBranch.id ? { ...b, ...formData } : b));
         closeModal();
       } else {
-        alert('Error updating branch: ' + error.message);
-      }
-    } else {
-      // Insert
-      const { data, error } = await supabase.from('branches').insert([formData]).select();
-      if (!error && data) {
-        setBranches([...branches, data[0]]);
+        const created = await adminApi.createBranch(formData);
+        setBranches([...branches, created]);
         closeModal();
-      } else {
-        alert('Error saving branch: ' + error.message);
       }
+    } catch (err: any) {
+      alert('Error saving branch: ' + err.message);
     }
   };
 
@@ -89,12 +81,11 @@ export default function BranchesManager() {
 
   const handleDeletePermanent = async (id: string) => {
     try {
-      const { error } = await supabase.from('branches').delete().eq('id', id);
-      if (error) throw error;
+      await adminApi.deleteBranch(id);
       setBranches(branches.filter(b => b.id !== id));
       setDeletingId(null);
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      alert('Error deleting branch: ' + err.message);
       setDeletingId(null);
     }
   };
@@ -102,17 +93,10 @@ export default function BranchesManager() {
   const toggleStatus = async (branch: any) => {
     const newStatus = !branch.is_active;
     try {
-      const { error } = await supabase
-        .from('branches')
-        .update({ is_active: newStatus })
-        .eq('id', branch.id);
-        
-      if (error) throw error;
-      
+      await adminApi.updateBranch(branch.id, { is_active: newStatus });
       setBranches(branches.map(b => b.id === branch.id ? { ...b, is_active: newStatus } : b));
-      setOpenActionId(null);
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      alert('Error changing status: ' + err.message);
     }
   };
 
@@ -147,7 +131,7 @@ export default function BranchesManager() {
             </tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={5} style={{textAlign:'center'}}>Loading...</td></tr> : filteredBranches.map(branch => (
+            {loading ? <tr><td colSpan={4} style={{textAlign:'center', padding: '2rem'}}>Loading...</td></tr> : filteredBranches.map(branch => (
               <tr key={branch.id} className={!branch.is_active ? styles.inactiveRow : ''}>
                 <td>
                   {branch.name}

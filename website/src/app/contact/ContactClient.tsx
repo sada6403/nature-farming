@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, MessageSquare, User, Send, CheckCircle2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import Section from '@/components/Section';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,7 @@ export default function ContactPage() {
 
   useEffect(() => {
     async function fetchSettings() {
-      const { data } = await supabase.from('company_settings').select('*').eq('id', 1).single();
+      const data = await api.getSettings();
       if (data) setSettings(data);
     }
     fetchSettings();

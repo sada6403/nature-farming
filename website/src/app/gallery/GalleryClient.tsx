@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Filter } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { api, getImageUrl } from '@/lib/api';
 import styles from './Gallery.module.css';
 
 export default function GalleryPage() {
@@ -29,11 +29,7 @@ export default function GalleryPage() {
 
   const fetchImages = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('gallery')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
+    const data = await api.getGallery();
     if (data) setImages([...STATIC_IMAGES, ...data]);
     else setImages(STATIC_IMAGES);
     setLoading(false);
@@ -179,7 +175,7 @@ export default function GalleryPage() {
                     </div>
                   ) : (
                     <img 
-                      src={img.image_url} 
+                      src={getImageUrl(img.image_url)} 
                       alt={img.title} 
                       className={styles.image} 
                     />
@@ -230,7 +226,7 @@ export default function GalleryPage() {
                 </div>
               ) : (
                 <img 
-                  src={selectedImage.image_url} 
+                  src={getImageUrl(selectedImage.image_url)} 
                   alt={selectedImage.title} 
                   className={styles.lightboxImage} 
                 />

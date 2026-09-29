@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import { Lock, Mail, Loader2 } from 'lucide-react';
 import styles from './login.module.css';
 
@@ -19,36 +19,16 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const data = await adminApi.login(email, password);
 
-      if (authError) throw authError;
-
-      if (data.user) {
-        // Check if user has admin role in profiles table
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile error:', profileError);
-          await supabase.auth.signOut();
-          if (profileError.code === 'PGRST116') {
-             throw new Error('Account verified, but profile not found. Please contact the Super Admin to sync your account.');
-          }
-          throw new Error('Could not verify admin status. Please try again.');
+      if (data && data.user) {
+        if (!['admin', 'super_admin'].includes(data.user.role)) {
+          await adminApi.logout();
+          throw new Error('Access denied. Administrator privileges required.');
         }
-
-        if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
-          await supabase.auth.signOut();
-          throw new Error('Access denied. Admin privileges required for this account.');
-        }
-
         router.push('/');
+      } else {
+        throw new Error('Login failed: invalid response from server');
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
@@ -77,7 +57,7 @@ export default function LoginPage() {
               <input
                 id="email"
                 type="email"
-                placeholder="admin@naturalfarming.com"
+                placeholder="admin@nfplantation.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

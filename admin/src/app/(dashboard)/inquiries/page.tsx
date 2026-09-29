@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Eye, CheckCircle, Trash2, MessageCircle, MoreHorizontal } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Eye, CheckCircle, Trash2, MessageCircle, Mail, Loader2 } from 'lucide-react';
+import { adminApi } from '@/lib/api';
 import styles from './Inquiries.module.css';
 
 export default function InquiriesManager() {
@@ -12,6 +12,7 @@ export default function InquiriesManager() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInquiries();
@@ -19,37 +20,54 @@ export default function InquiriesManager() {
   }, []);
 
   const fetchBranches = async () => {
-    // Fetch branch name and phone for WhatsApp forwarding
-    const { data } = await supabase.from('branches').select('id, name, phone');
-    if (data) setBranches(data);
+    try {
+      const data = await adminApi.getBranches();
+      if (data) setBranches(data);
+    } catch (err: any) {
+      console.error('Fetch branches error:', err);
+    }
   };
 
   const fetchInquiries = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('inquiries')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (!error && data) {
-      setInquiries(data);
+    try {
+      const data = await adminApi.getInquiries();
+      if (data) setInquiries(data);
+    } catch (err: any) {
+      console.error('Fetch inquiries error:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleBranchChange = async (inquiryId: string, branchId: string) => {
     setUpdatingId(inquiryId);
-    const { error } = await supabase
-      .from('inquiries')
-      .update({ assigned_branch_id: branchId || null })
-      .eq('id', inquiryId);
-
-    if (!error) {
+    try {
+      await adminApi.updateInquiry(inquiryId, { assigned_branch_id: branchId || null });
       setInquiries(inquiries.map(i => i.id === inquiryId ? { ...i, assigned_branch_id: branchId || null } : i));
-    } else {
-      alert('Error assigning branch: ' + error.message);
+    } catch (err: any) {
+      alert('Error assigning branch: ' + err.message);
+    } finally {
+      setUpdatingId(null);
     }
-    setUpdatingId(null);
+  };
+
+  const handleSendEmail = async (inquiry: any) => {
+    if (!inquiry.assigned_branch_id) {
+      alert('Please assign a branch first');
+      return;
+    }
+
+    setSendingEmailId(inquiry.id);
+    try {
+      const res: any = await adminApi.sendManagerEmail(inquiry.id, inquiry.assigned_branch_id);
+      alert(res.message || 'Notification email sent to branch manager!');
+      setInquiries(inquiries.map(i => i.id === inquiry.id ? { ...i, status: 'contacted' } : i));
+    } catch (err: any) {
+      alert('Failed to send manager email: ' + err.message);
+    } finally {
+      setSendingEmailId(null);
+    }
   };
 
   const forwardToWhatsApp = (inquiry: any) => {
@@ -67,7 +85,6 @@ export default function InquiriesManager() {
     const cleanPhone = branch.phone.replace(/[^0-9]/g, '');
     const location = inquiry.district || inquiry.city || 'Not Specified';
     
-    // Attractive WhatsApp Message Template with Emojis and Formatting
     const message = `🌱 *NEW FARMER INQUIRY* 🌱\n\nDear Branch Manager,\n\nWe have received a new registration request for your branch.\n\n👤 *Customer Name:* ${inquiry.full_name}\n📞 *Contact Number:* ${inquiry.phone || 'N/A'}\n📍 *Location:* ${location}\n\nThe customer is interested in joining as a farmer. Please:\n✅ Contact them to initiate the registration.\n✅ Assign a Field Visitor to their location.\n\nThank you,\n*Nature Farming Admin*`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -77,25 +94,19 @@ export default function InquiriesManager() {
   };
 
   const markResolved = async (id: string) => {
-    const { error } = await supabase
-      .from('inquiries')
-      .update({ status: 'closed' })
-      .eq('id', id);
-      
-    if (!error) {
+    try {
+      await adminApi.updateInquiry(id, { status: 'closed' });
       setInquiries(inquiries.map(i => i.id === id ? { ...i, status: 'closed' } : i));
+    } catch (err: any) {
+      alert('Error updating status: ' + err.message);
     }
   };
   
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase.from('inquiries').delete().eq('id', id);
-      if (!error) {
-        setInquiries(inquiries.filter(i => i.id !== id));
-        setDeletingId(null);
-      } else {
-        throw error;
-      }
+      await adminApi.deleteInquiry(id);
+      setInquiries(inquiries.filter(i => i.id !== id));
+      setDeletingId(null);
     } catch (err: any) {
       alert('Error: ' + err.message);
       setDeletingId(null);
@@ -130,9 +141,9 @@ export default function InquiriesManager() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center' }}>Loading...</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Loading inquiries...</td></tr>
             ) : filteredInquiries.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center' }}>No inquiries found.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No inquiries found.</td></tr>
             ) : filteredInquiries.map(inquiry => (
               <tr key={inquiry.id}>
                 <td>{new Date(inquiry.created_at).toLocaleDateString()}</td>
@@ -166,7 +177,7 @@ export default function InquiriesManager() {
                 </td>
                 <td>
                   <span style={{ 
-                    color: inquiry.status === 'closed' ? '#22c55e' : '#f59e0b', 
+                    color: inquiry.status === 'closed' ? '#22c55e' : (inquiry.status === 'contacted' ? '#3b82f6' : '#f59e0b'), 
                     fontWeight: 700,
                     fontSize: '0.75rem'
                   }}>
@@ -180,23 +191,34 @@ export default function InquiriesManager() {
                       <button className={styles.confirmNo} onClick={() => setDeletingId(null)}>No</button>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                       <button 
                         className={`${styles.iconBtn} ${styles.view}`} 
                         title="View details" 
-                        onClick={() => alert(`Location: ${inquiry.district || inquiry.city}\n\nMessage: ${inquiry.message}`)}
+                        onClick={() => alert(`Location: ${inquiry.district || inquiry.city || 'Not specified'}\n\nMessage: ${inquiry.message || 'None'}\n\nSubject: ${inquiry.subject || 'None'}`)}
                       >
                         <Eye size={18} />
                       </button>
 
                       {inquiry.type === 'farmer_interest' && (
-                        <button 
-                          className={styles.whatsAppBtn}
-                          onClick={() => forwardToWhatsApp(inquiry)} 
-                          title="Forward Details to Branch Manager via WhatsApp"
-                        >
-                          <MessageCircle size={18} />
-                        </button>
+                        <>
+                          <button 
+                            className={styles.whatsAppBtn}
+                            onClick={() => forwardToWhatsApp(inquiry)} 
+                            title="Forward to Manager via WhatsApp"
+                          >
+                            <MessageCircle size={18} />
+                          </button>
+                          <button 
+                            className={styles.iconBtn}
+                            style={{ backgroundColor: '#1e40af', color: 'white', borderRadius: '6px', padding: '6px' }}
+                            onClick={() => handleSendEmail(inquiry)}
+                            disabled={sendingEmailId === inquiry.id}
+                            title="Send Email Alert to Branch Manager"
+                          >
+                            {sendingEmailId === inquiry.id ? <Loader2 size={18} className="animate-spin" /> : <Mail size={18} />}
+                          </button>
+                        </>
                       )}
 
                       {inquiry.status !== 'closed' && (

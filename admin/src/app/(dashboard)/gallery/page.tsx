@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Image as ImageIcon } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { adminApi, getImageUrl } from '@/lib/api';
 import { compressImage } from '@/lib/image-utils';
 import styles from './Gallery.module.css';
 
@@ -15,7 +15,6 @@ export default function GalleryManager() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [optimizing, setOptimizing] = useState(false);
-
   
   const [formData, setFormData] = useState({
     id: null as string | null,
@@ -32,13 +31,14 @@ export default function GalleryManager() {
 
   const fetchImages = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('gallery')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (data) setImages(data);
-    setLoading(false);
+    try {
+      const data = await adminApi.getGallery();
+      if (data) setImages(data);
+    } catch (err: any) {
+      console.error('Fetch gallery error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (image: any) => {
@@ -48,7 +48,7 @@ export default function GalleryManager() {
       image_url: image.image_url,
       category: image.category || 'farms'
     });
-    setPreviewUrl(image.image_url);
+    setPreviewUrl(getImageUrl(image.image_url));
     setIsModalOpen(true);
   };
 
@@ -60,41 +60,22 @@ export default function GalleryManager() {
     }
   };
 
-  const uploadImage = async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError, data } = await supabase.storage
-      .from('gallery')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  };
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
     
     try {
-      console.log('Starting save process...');
       let finalImageUrl = formData.image_url;
 
-      // 1. Upload file if selected
+      // 1. Upload file to backend server if selected
       if (selectedFile) {
-        console.log('Optimizing and uploading file...');
         setOptimizing(true);
         const compressedBlob = await compressImage(selectedFile, 1280, 0.7);
         const optimizedFile = new File([compressedBlob], selectedFile.name, { type: 'image/jpeg' });
-        finalImageUrl = await uploadImage(optimizedFile);
-        console.log('File uploaded successfully. URL:', finalImageUrl);
         setOptimizing(false);
+
+        const uploadRes = await adminApi.uploadImage(optimizedFile);
+        finalImageUrl = uploadRes.relativeUrl || uploadRes.url;
       } else if (!formData.id && !selectedFile) {
         throw new Error('Please select an image file');
       }
@@ -105,67 +86,38 @@ export default function GalleryManager() {
         category: formData.category || 'other',
       };
 
-      console.log('Inserting/Updating metadata in database:', payload);
-      
-      let result;
       if (formData.id) {
-        result = await supabase.from('gallery').update(payload).eq('id', formData.id).select();
+        const updated = await adminApi.updateGalleryItem(formData.id, payload);
+        setImages(images.map(img => img.id === formData.id ? updated : img));
       } else {
-        result = await supabase.from('gallery').insert([payload]).select();
+        const created = await adminApi.createGalleryItem(payload);
+        setImages([created, ...images]);
       }
 
-      if (result.error) {
-        console.error('Database Operation Error:', result.error);
-        throw new Error(`Database Error: ${result.error.message}`);
-      }
-
-      console.log('Database result:', result.data);
-
-      if (result.data && result.data.length > 0) {
-        if (formData.id) {
-          setImages(images.map(img => img.id === formData.id ? result.data![0] : img));
-        } else {
-          setImages([result.data[0], ...images]);
-        }
-        setIsModalOpen(false);
-        resetForm();
-        alert('Image saved successfully!');
-      } else {
-        throw new Error('Success received from database but no record returned. Please refresh.');
-      }
+      setIsModalOpen(false);
+      resetForm();
+      alert('Gallery item saved successfully!');
     } catch (err: any) {
-      console.error('Full Error Object:', err);
       alert('Failed: ' + (err.message || 'Unknown error occurred.'));
     } finally {
       setUploading(false);
+      setOptimizing(false);
     }
   };
 
   const handleDelete = async (image: any) => {
     try {
-      // 1. Extract filename from URL to delete from storage
-      // Handling potential query parameters in URL
-      const fullFileName = image.image_url.split('/').pop();
-      const fileName = fullFileName?.split('?')[0];
-      
-      // 2. Delete from Storage
-      if (fileName) {
-        const { error: storageError } = await supabase.storage
-          .from('gallery')
-          .remove([fileName]);
-        
-        if (storageError) console.error('Storage cleanup warning:', storageError);
+      // 1. Delete from backend database
+      await adminApi.deleteGalleryItem(image.id);
+
+      // 2. Opportunistically delete physical file if in /uploads
+      const fileName = image.image_url?.split('/').pop()?.split('?')[0];
+      if (fileName && image.image_url.includes('/uploads/')) {
+        adminApi.deleteUploadedFile(fileName).catch(() => {});
       }
 
-      // 3. Delete from Database
-      const { error } = await supabase.from('gallery').delete().eq('id', image.id);
-      
-      if (!error) {
-        setImages(images.filter(img => img.id !== image.id));
-        setDeletingId(null);
-      } else {
-        throw error;
-      }
+      setImages(images.filter(img => img.id !== image.id));
+      setDeletingId(null);
     } catch (err: any) {
       alert('Error deleting image: ' + err.message);
       setDeletingId(null);
@@ -195,7 +147,7 @@ export default function GalleryManager() {
           {images.map((image) => (
             <div key={image.id} className={styles.imageCard}>
               <div className={styles.imageWrapper}>
-                <img src={image.image_url} alt={image.title} className={styles.thumbnail} />
+                <img src={getImageUrl(image.image_url)} alt={image.title} className={styles.thumbnail} />
                   <div className={styles.cardActions}>
                     {deletingId === image.id ? (
                       <div className={styles.inlineConfirm}>
@@ -233,7 +185,7 @@ export default function GalleryManager() {
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2>{formData.id ? 'Edit ImageDetails' : 'Add New Gallery Image'}</h2>
+              <h2>{formData.id ? 'Edit Image Details' : 'Add New Gallery Image'}</h2>
               <button className={styles.btnCancel} style={{padding: '5px'}} onClick={() => setIsModalOpen(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSave}>

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MessageCircle, Camera, Video, Mail, Phone, MapPin, Leaf, Youtube, Facebook, Instagram, Linkedin } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import styles from './Footer.module.css';
 
 const Footer = () => {
@@ -11,7 +11,7 @@ const Footer = () => {
 
   useEffect(() => {
     async function fetchSettings() {
-      const { data } = await supabase.from('company_settings').select('*').eq('id', 1).single();
+      const data = await api.getSettings();
       if (data) setSettings(data);
     }
     fetchSettings();

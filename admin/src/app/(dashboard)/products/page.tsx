@@ -1,17 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Plus, Edit2, Trash2, X, Eye, EyeOff, Upload, Loader2 } from 'lucide-react';
+import { adminApi, getImageUrl } from '@/lib/api';
 import styles from './Products.module.css';
 
 export default function ProductsManager() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const [formData, setFormData] = useState({
     id: null as string | null,
@@ -29,18 +29,20 @@ export default function ProductsManager() {
     fetchData();
   }, []);
 
-  // Removed dropdown click-outside logic
-
   const fetchData = async () => {
     setLoading(true);
-    const [catRes, prodRes] = await Promise.all([
-      supabase.from('product_categories').select('*'),
-      supabase.from('products').select('*, product_categories(name)')
-    ]);
-    
-    if (catRes.data) setCategories(catRes.data);
-    if (prodRes.data) setProducts(prodRes.data);
-    setLoading(false);
+    try {
+      const [cats, prods] = await Promise.all([
+        adminApi.getCategories(),
+        adminApi.getProducts()
+      ]);
+      setCategories(cats || []);
+      setProducts(prods || []);
+    } catch (err: any) {
+      console.error('Fetch products error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (product: any) => {
@@ -49,8 +51,8 @@ export default function ProductsManager() {
       name: product.name,
       slug: product.slug,
       description: product.description || '',
-      price: product.price.toString(),
-      category_id: product.category_id,
+      price: product.price ? product.price.toString() : '',
+      category_id: product.category_id || '',
       image_url: product.image_url || '',
       is_published: product.is_published,
       is_featured: product.is_featured
@@ -58,37 +60,48 @@ export default function ProductsManager() {
     setIsModalOpen(true);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const res = await adminApi.uploadImage(file);
+      if (res && res.relativeUrl) {
+        setFormData(prev => ({ ...prev, image_url: res.relativeUrl }));
+      }
+    } catch (err: any) {
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
       name: formData.name,
-      slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-'),
+      slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       description: formData.description,
-      price: parseFloat(formData.price),
-      category_id: formData.category_id,
+      price: formData.price ? parseFloat(formData.price) : 0,
+      category_id: formData.category_id || null,
       image_url: formData.image_url,
       is_published: formData.is_published,
       is_featured: formData.is_featured,
-      updated_at: new Date().toISOString()
     };
 
-    let result;
-    if (formData.id) {
-      result = await supabase.from('products').update(payload).eq('id', formData.id).select('*, product_categories(name)');
-    } else {
-      result = await supabase.from('products').insert([payload]).select('*, product_categories(name)');
-    }
-    
-    if (!result.error && result.data) {
+    try {
       if (formData.id) {
-        setProducts(products.map(p => p.id === formData.id ? result.data![0] : p));
+        const updated = await adminApi.updateProduct(formData.id, payload);
+        setProducts(products.map(p => p.id === formData.id ? updated : p));
       } else {
-        setProducts([...products, result.data[0]]);
+        const created = await adminApi.createProduct(payload);
+        setProducts([created, ...products]);
       }
       setIsModalOpen(false);
       resetForm();
-    } else {
-      alert('Error saving product: ' + (result.error?.message || 'Unknown error'));
+    } catch (err: any) {
+      alert('Error saving product: ' + err.message);
     }
   };
 
@@ -98,12 +111,11 @@ export default function ProductsManager() {
 
   const handleDeletePermanent = async (id: string) => {
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) throw error;
+      await adminApi.deleteProduct(id);
       setProducts(products.filter(p => p.id !== id));
       setDeletingId(null);
     } catch (err: any) {
-      alert('Database Error: ' + err.message + '\n\nNote: Permanent delete fails if this product is linked to other data.');
+      alert('Error deleting product: ' + err.message);
       setDeletingId(null);
     }
   };
@@ -111,15 +123,8 @@ export default function ProductsManager() {
   const togglePublishStatus = async (product: any) => {
     const newStatus = !product.is_published;
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({ is_published: newStatus })
-        .eq('id', product.id);
-        
-      if (error) throw error;
-      
+      await adminApi.updateProduct(product.id, { is_published: newStatus });
       setProducts(products.map(p => p.id === product.id ? { ...p, is_published: newStatus } : p));
-      setOpenActionId(null);
     } catch (err: any) {
       alert('Error changing status: ' + err.message);
     }
@@ -157,13 +162,13 @@ export default function ProductsManager() {
             </tr>
           </thead>
           <tbody>
-            {loading ? <tr><td colSpan={5} style={{textAlign:'center'}}>Loading...</td></tr> : filteredProducts.map(product => (
+            {loading ? <tr><td colSpan={5} style={{textAlign:'center', padding: '2rem'}}>Loading...</td></tr> : filteredProducts.map(product => (
               <tr key={product.id} className={!product.is_published ? styles.inactiveRow : ''}>
                 <td>
                   <div style={{ fontWeight: 600 }}>{product.name}</div>
                   {product.is_featured && <span style={{ fontSize: '0.7rem', color: '#b5d045', fontWeight: 700 }}>★ FEATURED</span>}
                 </td>
-                <td>{product.product_categories?.name}</td>
+                <td>{product.product_categories?.name || 'Uncategorized'}</td>
                 <td>Rs. {product.price}</td>
                 <td>
                   <span className={`${styles.status} ${product.is_published ? styles.active : styles.inactive}`}>
@@ -233,11 +238,34 @@ export default function ProductsManager() {
               <div className={styles.grid}>
                 <div className={styles.formGroup}>
                   <label>Price (LKR)</label>
-                  <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required />
+                  <input type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Image URL</label>
-                  <input type="text" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} placeholder="e.g. /aloe-soap.png" />
+                  <label>Image Upload or URL</label>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input 
+                      type="text" 
+                      value={formData.image_url} 
+                      onChange={e => setFormData({...formData, image_url: e.target.value})} 
+                      placeholder="e.g. /aloe_soap.png or upload" 
+                      style={{ flex: 1 }}
+                    />
+                    <label style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.25rem', 
+                      padding: '0.6rem 0.8rem', 
+                      backgroundColor: '#2e4f2e', 
+                      color: 'white', 
+                      borderRadius: '6px', 
+                      cursor: 'pointer',
+                      fontSize: '0.85rem'
+                    }}>
+                      {uploadingImage ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                      <span>Upload</span>
+                      <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+                    </label>
+                  </div>
                 </div>
               </div>
 

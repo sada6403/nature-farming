@@ -1,7 +1,12 @@
-# Replace both example domains before enabling this file.
+# Production Nginx Configuration for Nature Farming
+# Public Website: example.com, www.example.com -> Next.js (port 3000)
+# Admin Portal: admin.example.com -> Next.js (port 3001)
+# Backend REST API & Uploads: /api/ and /uploads/ -> Express (port 5000)
+
 limit_req_zone $binary_remote_addr zone=public_api:10m rate=10r/m;
 limit_req_zone $binary_remote_addr zone=admin_login:10m rate=10r/m;
 
+# HTTP -> HTTPS Redirect
 server {
     listen 80;
     listen [::]:80;
@@ -9,6 +14,7 @@ server {
     return 301 https://$host$request_uri;
 }
 
+# 1. Public Website Server Block
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
@@ -16,25 +22,47 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-    client_max_body_size 6M;
+    client_max_body_size 50M;
 
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options "nosniff" always;
 
-    location = /api/inquiries {
-        limit_req zone=public_api burst=5 nodelay;
-        proxy_pass http://127.0.0.1:3000;
-        include /etc/nginx/proxy_params;
+    # Backend REST API proxy
+    location /api/ {
+        limit_req zone=public_api burst=10 nodelay;
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # Uploads static storage proxy
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5000/uploads/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Public Next.js Website
     location / {
         proxy_pass http://127.0.0.1:3000;
-        include /etc/nginx/proxy_params;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 
+# 2. Admin Portal Server Block
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
@@ -42,21 +70,52 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/admin.example.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/admin.example.com/privkey.pem;
-    client_max_body_size 6M;
+    client_max_body_size 50M;
 
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Content-Type-Options "nosniff" always;
 
+    # Backend REST API proxy
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Uploads static storage proxy
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5000/uploads/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
     location = /login {
         limit_req zone=admin_login burst=10 nodelay;
         proxy_pass http://127.0.0.1:3001;
-        include /etc/nginx/proxy_params;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     location / {
         proxy_pass http://127.0.0.1:3001;
-        include /etc/nginx/proxy_params;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }

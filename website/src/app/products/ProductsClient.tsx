@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { api, getImageUrl } from '@/lib/api';
 import Section from '@/components/Section';
 import ProductCard from '@/components/ProductCard';
 import { motion } from 'framer-motion';
@@ -20,19 +20,14 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('products')
-      .select('*, product_categories(name)')
-      .eq('is_published', true)
-      .order('is_featured', { ascending: false });
-      
+    const data = await api.getProducts();
     if (data) {
-      setProducts(data.map(p => ({
+      setProducts(data.map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description,
         price: p.price,
-        image: p.image_url || '/aloe_soap_product_1776647089967.png',
+        image: getImageUrl(p.image_url),
         category: p.product_categories?.name,
         isFarmerExclusive: p.product_categories?.name === 'Raw Materials'
       })));
@@ -41,13 +36,13 @@ export default function ProductsPage() {
   };
 
   const fetchBanners = async () => {
-    const { data } = await supabase
-      .from('ads_banners')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true });
-    
-    if (data) setBanners(data);
+    const data = await api.getBanners();
+    if (data) {
+      setBanners(data.map((b: any) => ({
+        ...b,
+        image_url: getImageUrl(b.image_url),
+      })));
+    }
   };
 
   const rawMaterials = products.filter(p => p.isFarmerExclusive);

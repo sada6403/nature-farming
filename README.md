@@ -1,10 +1,12 @@
-# nature-farming
+# Nature Farming
 
-This repository contains the full source code for the **Nature Farming** ecosystem, including the public-facing website and the administrative dashboard.
+This repository contains the full source code for the **Nature Farming** ecosystem, including the public website, administrative portal, and dedicated REST API backend.
 
 ## Project Structure
-- **/website**: The official public-facing website built with Next.js.
-- **/admin**: The administrative portal for managing products, banners, inquiries, and gallery content.
+- **/backend**: Dedicated Node.js & Express REST API server with PostgreSQL, JWT Auth, Multer storage, and Nodemailer.
+- **/website**: The official public-facing website built with Next.js (App Router).
+- **/admin**: The administrative portal for managing products, banners, branches, inquiries, gallery, and CMS settings.
+- **/deploy**: VPS deployment configurations with PM2 (`ecosystem.config.js`) and Nginx.
 
 ## Identity
 - **Legal Name**: Nature Farming (Pvt) Ltd
@@ -12,14 +14,13 @@ This repository contains the full source code for the **Nature Farming** ecosyst
 - **Establishment**: 2023
 
 ## Tech Stack
-- Frontend: Next.js (App Router)
-- Styling: Tailwind CSS
-- Backend/DB: Supabase
-- Icons: Lucide React
-- Animations: Framer Motion
+- Frontend: Next.js (App Router) & Tailwind CSS
+- Admin Portal: Next.js
+- Backend API: Node.js, Express
+- Database: PostgreSQL (`pg`)
+- Authentication: JWT with bcrypt password hashing
+- Storage: Local Multipart File Storage (`multer`)
+- Email: Nodemailer (SMTP)
 
-## Production Backend
-
-Use `supabase_production.sql` for the complete database, RLS, storage and admin authorization setup. Public inquiries are validated and rate-limited by the website's `/api/inquiries` server route before being written with the server-only service role.
-
-Setup instructions: [BACKEND-SETUP.md](./BACKEND-SETUP.md)
+## Setup Guide
+See [BACKEND-SETUP.md](./BACKEND-SETUP.md) for full database initialization, local development, and VPS deployment instructions.

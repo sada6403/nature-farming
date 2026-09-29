@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Clock, Search, Map } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import Section from '@/components/Section';
 import { motion } from 'framer-motion';
 
@@ -17,7 +17,7 @@ export default function BranchesPage() {
 
   const fetchBranches = async () => {
     setLoading(true);
-    const { data } = await supabase.from('branches').select('*').eq('is_active', true).order('name');
+    const data = await api.getBranches();
     if (data) setBranches(data);
     setLoading(false);
   };

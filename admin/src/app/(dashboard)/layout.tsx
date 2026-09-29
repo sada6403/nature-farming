@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import Sidebar from '@/components/Sidebar';
 import styles from './dashboard.module.css';
 
@@ -18,26 +18,18 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+      try {
+        const user = await adminApi.getMe();
+        if (!user || !['admin', 'super_admin'].includes(user.role)) {
+          await adminApi.logout();
+          router.push('/login');
+          return;
+        }
+        setLoading(false);
+      } catch {
+        await adminApi.logout();
         router.push('/login');
-        return;
       }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
-        await supabase.auth.signOut();
-        router.push('/login');
-        return;
-      }
-
-      setLoading(false);
     };
 
     checkAuth();

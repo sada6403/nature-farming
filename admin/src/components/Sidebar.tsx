@@ -16,7 +16,7 @@ import {
   Tv,
   X
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -39,7 +39,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   ];
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await adminApi.logout();
     router.push('/login');
   };
 

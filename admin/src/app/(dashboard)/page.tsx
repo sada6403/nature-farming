@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
+import { adminApi } from '@/lib/api';
 import { 
   Users, 
   Package, 
@@ -8,69 +9,51 @@ import {
   ArrowUpRight, 
   ArrowDownRight,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import styles from './dashboard.module.css';
 
 export default function DashboardHome() {
   const [stats, setStats] = useState([
-    { label: 'Total Requests', value: '0', change: '...', trending: 'neutral', icon: Users },
-    { label: 'Active Products', value: '0', change: '...', trending: 'neutral', icon: Package },
-    { label: 'Total Branches', value: '0', change: '0%', trending: 'neutral', icon: MapPin },
-    { label: 'Pending Inquiries', value: '0', change: '...', trending: 'neutral', icon: Clock },
+    { label: 'Total Requests', value: '0', change: '', trending: 'neutral', icon: Users },
+    { label: 'Active Products', value: '0', change: '', trending: 'neutral', icon: Package },
+    { label: 'Total Branches', value: '0', change: '', trending: 'neutral', icon: MapPin },
+    { label: 'Pending Inquiries', value: '0', change: '', trending: 'neutral', icon: Clock },
   ]);
 
   const [recentInquiries, setRecentInquiries] = useState<any[]>([]);
+  const [systemStatus, setSystemStatus] = useState<any>({
+    database: 'Operational',
+    authService: 'Operational',
+    storage: 'Operational'
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchDashboardData() {
       setLoading(true);
       try {
-        // 1. Total Requests (Inquiries)
-        const { count: totalRequests } = await supabase
-          .from('inquiries')
-          .select('*', { count: 'exact', head: true });
+        const data = await adminApi.getDashboardStats();
+        if (data) {
+          setStats([
+            { label: 'Total Requests', value: (data.totalRequests || 0).toString(), change: '', trending: 'neutral', icon: Users },
+            { label: 'Active Products', value: (data.activeProducts || 0).toString(), change: '', trending: 'neutral', icon: Package },
+            { label: 'Total Branches', value: (data.totalBranches || 0).toString(), change: '', trending: 'neutral', icon: MapPin },
+            { label: 'Pending Inquiries', value: (data.pendingInquiries || 0).toString(), change: '', trending: 'neutral', icon: Clock },
+          ]);
 
-        // 2. Active Products
-        const { count: activeProducts } = await supabase
-          .from('products')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_published', true);
+          if (data.recentInquiries) {
+            setRecentInquiries(data.recentInquiries);
+          }
+        }
 
-        // 3. Total Branches
-        const { count: totalBranches } = await supabase
-          .from('branches')
-          .select('*', { count: 'exact', head: true });
-
-        // 4. Pending Inquiries
-        const { count: pendingInquiries } = await supabase
-          .from('inquiries')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'new');
-
-        // 5. Recent Inquiries
-        const { data: recentData } = await supabase
-          .from('inquiries')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        setStats([
-          { label: 'Total Requests', value: (totalRequests || 0).toString(), change: '', trending: 'neutral', icon: Users },
-          { label: 'Active Products', value: (activeProducts || 0).toString(), change: '', trending: 'neutral', icon: Package },
-          { label: 'Total Branches', value: (totalBranches || 0).toString(), change: '', trending: 'neutral', icon: MapPin },
-          { label: 'Pending Inquiries', value: (pendingInquiries || 0).toString(), change: '', trending: 'neutral', icon: Clock },
-        ]);
-
-        if (recentData) {
-          setRecentInquiries(recentData.map(iq => ({
-            id: iq.id,
-            name: iq.full_name,
-            type: iq.type === 'farmer_interest' ? 'Farmer Registration' : 'Contact Inquiry',
-            status: iq.status.charAt(0).toUpperCase() + iq.status.slice(1),
-            time: new Date(iq.created_at).toLocaleDateString()
-          })));
+        // Fetch system status
+        try {
+          const status = await adminApi.getSystemStatus();
+          if (status) setSystemStatus(status);
+        } catch {
+          // Keep defaults
         }
 
       } catch (err) {
@@ -109,7 +92,7 @@ export default function DashboardHome() {
         <div className={styles.mainPanel}>
           <div className={styles.panelHeader}>
             <h3>Recent Inquiries</h3>
-            <button className={styles.textBtn}>View All</button>
+            <Link href="/inquiries" className={styles.textBtn}>View All</Link>
           </div>
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
@@ -132,13 +115,13 @@ export default function DashboardHome() {
                     <td>{inquiry.name}</td>
                     <td>{inquiry.type}</td>
                     <td>
-                      <span className={`${styles.statusBadge} ${styles[inquiry.status.toLowerCase()]}`}>
+                      <span className={`${styles.statusBadge} ${styles[inquiry.status.toLowerCase()] || styles.new}`}>
                         {inquiry.status}
                       </span>
                     </td>
                     <td>{inquiry.time}</td>
                     <td>
-                      <button className={styles.actionBtn}>Manage</button>
+                      <Link href="/inquiries" className={styles.actionBtn}>Manage</Link>
                     </td>
                   </tr>
                 ))}
@@ -153,24 +136,28 @@ export default function DashboardHome() {
           </div>
           <div className={styles.statusList}>
             <div className={styles.statusItem}>
-              <CheckCircle2 size={18} color="#2e4f2e" />
+              {systemStatus.database === 'Operational' ? (
+                <CheckCircle2 size={18} color="#2e4f2e" />
+              ) : (
+                <AlertCircle size={18} color="#dc2626" />
+              )}
               <div>
-                <p className={styles.statusTitle}>Supabase Connection</p>
-                <p className={styles.statusDesc}>Operational</p>
+                <p className={styles.statusTitle}>PostgreSQL Database</p>
+                <p className={styles.statusDesc}>{systemStatus.database}</p>
               </div>
             </div>
             <div className={styles.statusItem}>
               <CheckCircle2 size={18} color="#2e4f2e" />
               <div>
-                <p className={styles.statusTitle}>Auth Service</p>
-                <p className={styles.statusDesc}>Operational</p>
+                <p className={styles.statusTitle}>REST API Backend</p>
+                <p className={styles.statusDesc}>Operational (Port 5000)</p>
               </div>
             </div>
             <div className={styles.statusItem}>
               <CheckCircle2 size={18} color="#2e4f2e" />
               <div>
-                <p className={styles.statusTitle}>Storage Bucket</p>
-                <p className={styles.statusDesc}>85% Capacity</p>
+                <p className={styles.statusTitle}>Local Upload Storage</p>
+                <p className={styles.statusDesc}>Operational</p>
               </div>
             </div>
           </div>

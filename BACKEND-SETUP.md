@@ -1,63 +1,118 @@
-# Nature Farming Backend Setup
+# Nature Farming Backend Setup (Custom Node.js + Express + PostgreSQL)
 
-The project uses Supabase for PostgreSQL, authentication and media storage. The two Next.js applications run on the VPS. Public form writes pass through the website server API; admin CRUD is protected by Supabase Auth and row-level security (RLS).
+This repository contains a dedicated, standalone **Node.js + Express + PostgreSQL** backend service in `/backend`. Supabase has been completely removed in favor of this self-hosted, scalable backend with:
+- **JWT Authentication** (bcrypt password hashing, roles: `admin`, `super_admin`)
+- **Direct PostgreSQL Connection Pool** (`pg`)
+- **RESTful Endpoints** for products, categories, branches, inquiries, gallery, banners, and settings
+- **Local Media Storage & Uploads** via Multer (`/uploads`)
+- **Automated Email Notifications** to branch managers via Nodemailer (Gmail/SMTP)
+- **Rate-Limiting** for public farmer & contact inquiries
 
-## 1. Install the database backend
+---
 
-1. Open the existing Supabase project.
-2. Open **SQL Editor** and run [`supabase_production.sql`](./supabase_production.sql) in full.
-3. In **Authentication > Providers > Email**, disable public user sign-up. Admin users should only be created by the project owner.
-4. In **Authentication > Users**, create the first admin user.
-5. Run the following in SQL Editor, replacing the email:
+## 1. Directory Structure
 
-```sql
-insert into public.profiles (id, email, full_name, role)
-select id, email, 'Administrator', 'super_admin'
-from auth.users
-where email = 'admin@example.com'
-on conflict (id) do update set role = 'super_admin';
+```
+faring/
+├── backend/            # Express REST API Server (Port 5000)
+│   ├── src/
+│   │   ├── config/     # PostgreSQL connection pool (db.js)
+│   │   ├── middleware/ # JWT Auth, Multer upload, Rate limiter
+│   │   ├── routes/     # Auth, Products, Branches, Inquiries, etc.
+│   │   ├── scripts/    # init-db.js, seed-data.js
+│   │   └── server.js   # Express entry point
+│   ├── uploads/        # Uploaded image files
+│   └── package.json
+├── website/            # Next.js Public Website (Port 3000)
+├── admin/              # Next.js Admin Portal (Port 3001)
+└── deploy/             # PM2 ecosystem and Nginx configurations
 ```
 
-Additional admins can be added with role `admin`. Never put the service-role key in a variable beginning with `NEXT_PUBLIC_`.
+---
 
-## 2. Configure environment files
+## 2. Setting Up the Database & Backend
 
-Copy `website/.env.example` to `website/.env.local` and `admin/.env.example` to `admin/.env.local`. Fill the values from **Supabase > Project Settings > API**.
-
-Generate the inquiry salt on the VPS:
-
+### 1. Configure Backend Environment
+Navigate to `backend/` and copy `.env.example` to `.env`:
 ```bash
-openssl rand -hex 32
+cd backend
+cp .env.example .env
 ```
 
-Use that output as `INQUIRY_RATE_LIMIT_SALT`. The website needs the service-role key only for its server-side inquiry API. The admin app needs it only for authenticated server routes such as manager email delivery.
+Ensure `DATABASE_URL` points to your PostgreSQL instance:
+```env
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/nature_farming
+PORT=5000
+JWT_SECRET=YOUR_SECURE_JWT_SECRET
+DEFAULT_ADMIN_EMAIL=admin@nfplantation.com
+DEFAULT_ADMIN_PASSWORD=Admin@123456
+DEFAULT_ADMIN_NAME=Super Administrator
+```
 
-## 3. Verify locally
+### 2. Install Dependencies & Initialize Database
+```bash
+npm install
+npm run db:init
+npm run db:seed
+```
+- `npm run db:init`: Automatically creates all PostgreSQL tables (`profiles`, `company_settings`, `products`, `branches`, `inquiries`, `gallery`, `faqs`, `ads_banners`, `inquiry_rate_limits`) and inserts the default super administrator user.
+- `npm run db:seed`: Seeds sample products, categories, FAQs, and Sri Lankan regional branches.
 
-```powershell
+### 3. Start the Backend Server
+```bash
+npm run dev
+```
+The backend starts at `http://localhost:5000`.
+- Health check: `http://localhost:5000/api/health`
+- Static uploads: `http://localhost:5000/uploads/`
+
+---
+
+## 3. Frontend & Admin Setup
+
+Both `website` and `admin` communicate directly with the backend API:
+
+### 1. Website (`website/.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+Run website:
+```bash
 cd website
-npm.cmd ci
-npm.cmd run build
-
-cd ..\admin
-npm.cmd ci
-npm.cmd run build
+npm run dev
+# Open http://localhost:3000
 ```
 
-Start the apps in separate terminals with `npm.cmd run dev`. Verify:
+### 2. Admin Portal (`admin/.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+Run admin:
+```bash
+cd admin
+npm run dev
+# Open http://localhost:3001
+```
 
-- Website health: `http://localhost:3000/api/health`
-- Admin health: `http://localhost:3001/api/health` when admin is started on port 3001
-- A contact submission appears in the admin inquiry inbox.
-- A non-admin Supabase user cannot access or modify CMS data.
+Sign in with default credentials:
+- **Email:** `admin@nfplantation.com`
+- **Password:** `Admin@123456`
 
-## 4. Production checklist
+---
 
-- Use HTTPS for both the public and admin domains.
-- Keep ports 3000 and 3001 bound behind Nginx; expose only SSH, HTTP and HTTPS in the firewall.
-- Use a long unique admin password and enable MFA in Supabase when available.
-- Back up the Supabase database and storage buckets regularly.
-- Keep `.env.local` files on the VPS only and restrict them with `chmod 600`.
-- Check `pm2 logs` and both `/api/health` endpoints after every deploy.
+## 4. Production VPS Deployment (PM2 + Nginx)
 
-See [`deploy/DEPLOYMENT-GUIDE.md`](./deploy/DEPLOYMENT-GUIDE.md) for VPS commands.
+In production on your Ubuntu VPS, PM2 manages all three services:
+1. `faring-backend` on port `5000`
+2. `faring-website` on port `3000`
+3. `faring-admin` on port `3001`
+
+### Running with PM2:
+```bash
+cd /var/www/faring
+pm2 startOrReload deploy/ecosystem.config.js --update-env
+pm2 save
+```
+
+### Nginx Routing:
+Nginx routes `/api/` and `/uploads/` to `http://127.0.0.1:5000`. See [`deploy/nginx.production.conf.example`](./deploy/nginx.production.conf.example) for the full configuration.

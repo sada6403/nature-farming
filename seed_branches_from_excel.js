@@ -1,34 +1,19 @@
-const { createClient } = require('@supabase/supabase-js');
 const xlsx = require('xlsx');
-const dotenv = require('dotenv');
 const path = require('path');
+const { pool, query } = require('./backend/src/config/db');
 
-// Load environment variables from admin/.env.local
-dotenv.config({ path: path.resolve(__dirname, 'admin/.env.local') });
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-async function seed() {
+async function seedBranchesFromExcel() {
   try {
-    console.log('Reading Excel file...');
-    const workbook = xlsx.readFile('Employee_Master_Sheet_20260421_1038.xlsx');
+    const excelPath = path.resolve(__dirname, 'Employee_Master_Sheet_20260421_1038.xlsx');
+    console.log(`Reading Excel file: ${excelPath}`);
+    const workbook = xlsx.readFile(excelPath);
     const sheetName = workbook.SheetNames[0];
     const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    console.log(`Found ${data.length} entries in Excel.`);
+    console.log(`Found ${data.length} total entries in Excel.`);
 
-    // Filter only Branch Managers or similar roles if necessary
-    // Based on the sample: { "Role": "Branch Manager", "Branch/Area": "Chavakachcheri", ... }
     const managers = data.filter(row => row.Role === 'Branch Manager');
-    console.log(`Processing ${managers.length} Branch Managers.`);
+    console.log(`Processing ${managers.length} Branch Managers into PostgreSQL...`);
 
     for (const manager of managers) {
       const branchName = manager['Branch/Area'];
@@ -36,50 +21,37 @@ async function seed() {
       const managerEmail = manager['Email'];
       const phone = manager['Phone']?.toString();
 
-      console.log(`Upserting branch: ${branchName} (Manager: ${managerName})`);
+      if (!branchName) continue;
 
-      // Check if branch exists
-      const { data: existingBranch } = await supabase
-        .from('branches')
-        .select('id')
-        .eq('name', branchName)
-        .single();
+      const existing = await query('SELECT id FROM branches WHERE LOWER(name) = LOWER($1)', [branchName]);
 
-      if (existingBranch) {
-        // Update
-        const { error } = await supabase
-          .from('branches')
-          .update({
-            manager_name: managerName,
-            email: managerEmail,
-            phone: phone,
-            updated_at: new Date()
-          })
-          .eq('id', existingBranch.id);
-        
-        if (error) console.error(`Error updating branch ${branchName}:`, error.message);
+      if (existing.rows.length > 0) {
+        await query(
+          `UPDATE branches SET
+            manager_name = $1,
+            email = $2,
+            phone = $3,
+            updated_at = NOW()
+          WHERE id = $4`,
+          [managerName, managerEmail, phone, existing.rows[0].id]
+        );
+        console.log(`Updated branch: ${branchName}`);
       } else {
-        // Insert
-        const { error } = await supabase
-          .from('branches')
-          .insert([{
-            name: branchName,
-            district: branchName, // Using branch name as district for now
-            address: branchName, // Placeholder address
-            manager_name: managerName,
-            email: managerEmail,
-            phone: phone,
-            is_active: true
-          }]);
-        
-        if (error) console.error(`Error inserting branch ${branchName}:`, error.message);
+        await query(
+          `INSERT INTO branches (name, district, address, manager_name, email, phone, is_active, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())`,
+          [branchName, branchName, `${branchName}, Sri Lanka`, managerName, managerEmail, phone]
+        );
+        console.log(`Inserted branch: ${branchName}`);
       }
     }
 
-    console.log('Seed finished successfully!');
-  } catch (error) {
-    console.error('Seed failed:', error);
+    console.log('🎉 Excel branch import complete!');
+  } catch (err) {
+    console.error('Error importing branches from excel:', err.message);
+  } finally {
+    await pool.end();
   }
 }
 
-seed();
+seedBranchesFromExcel();

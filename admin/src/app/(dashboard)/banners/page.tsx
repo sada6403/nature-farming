@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Tv, ExternalLink } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { adminApi, getImageUrl } from '@/lib/api';
 import { compressImage } from '@/lib/image-utils';
 import styles from './Banners.module.css';
 
@@ -31,14 +31,14 @@ export default function BannersManager() {
 
   const fetchBanners = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('ads_banners')
-      .select('*')
-      .order('display_order', { ascending: true })
-      .order('created_at', { ascending: false });
-    
-    if (data) setBanners(data);
-    setLoading(false);
+    try {
+      const data = await adminApi.getBanners();
+      if (data) setBanners(data);
+    } catch (err: any) {
+      console.error('Fetch banners error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (banner: any) => {
@@ -50,7 +50,7 @@ export default function BannersManager() {
       is_active: banner.is_active,
       display_order: banner.display_order || 0
     });
-    setPreviewUrl(banner.image_url);
+    setPreviewUrl(getImageUrl(banner.image_url));
     setIsModalOpen(true);
   };
 
@@ -60,24 +60,6 @@ export default function BannersManager() {
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
-  };
-
-  const uploadImage = async (file: File) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `banner_${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('banners')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('banners')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -91,8 +73,10 @@ export default function BannersManager() {
         setOptimizing(true);
         const compressedBlob = await compressImage(selectedFile, 1920, 0.7);
         const optimizedFile = new File([compressedBlob], selectedFile.name, { type: 'image/jpeg' });
-        finalImageUrl = await uploadImage(optimizedFile);
         setOptimizing(false);
+
+        const uploadRes = await adminApi.uploadImage(optimizedFile);
+        finalImageUrl = uploadRes.relativeUrl || uploadRes.url;
       } else if (!formData.id && !selectedFile) {
         throw new Error('Please select an image file');
       }
@@ -104,19 +88,15 @@ export default function BannersManager() {
         is_active: formData.is_active,
         display_order: formData.display_order
       };
-      
-      let error;
+
       if (formData.id) {
-        const { error: err } = await supabase.from('ads_banners').update(payload).eq('id', formData.id);
-        error = err;
+        const updated = await adminApi.updateBanner(formData.id, payload);
+        setBanners(banners.map(b => b.id === formData.id ? updated : b));
       } else {
-        const { error: err } = await supabase.from('ads_banners').insert([payload]);
-        error = err;
+        const created = await adminApi.createBanner(payload);
+        setBanners([...banners, created]);
       }
 
-      if (error) throw error;
-
-      fetchBanners();
       setIsModalOpen(false);
       resetForm();
       alert('Banner saved successfully!');
@@ -130,19 +110,13 @@ export default function BannersManager() {
 
   const handleDelete = async (banner: any) => {
     try {
-      // 1. Extract filename from URL to delete from storage
-      const fileName = banner.image_url.split('/').pop();
-      if (fileName && fileName.startsWith('banner_')) {
-        const { error: storageError } = await supabase.storage
-          .from('banners')
-          .remove([fileName]);
-        if (storageError) console.error('Storage cleanup warning:', storageError);
+      await adminApi.deleteBanner(banner.id);
+      
+      const fileName = banner.image_url?.split('/').pop()?.split('?')[0];
+      if (fileName && banner.image_url.includes('/uploads/')) {
+        adminApi.deleteUploadedFile(fileName).catch(() => {});
       }
 
-      // 2. Delete from Database
-      const { error } = await supabase.from('ads_banners').delete().eq('id', banner.id);
-      if (error) throw error;
-      
       setBanners(banners.filter(b => b.id !== banner.id));
       setDeletingId(null);
     } catch (err: any) {
@@ -152,13 +126,11 @@ export default function BannersManager() {
 
   const toggleStatus = async (banner: any) => {
     const newStatus = !banner.is_active;
-    const { error } = await supabase
-      .from('ads_banners')
-      .update({ is_active: newStatus })
-      .eq('id', banner.id);
-    
-    if (!error) {
+    try {
+      await adminApi.updateBanner(banner.id, { is_active: newStatus });
       setBanners(banners.map(b => b.id === banner.id ? { ...b, is_active: newStatus } : b));
+    } catch (err: any) {
+      alert('Error toggling status: ' + err.message);
     }
   };
 
@@ -191,7 +163,7 @@ export default function BannersManager() {
           {banners.map((banner) => (
             <div key={banner.id} className={styles.bannerCard}>
               <div className={styles.imageWrapper}>
-                <img src={banner.image_url} alt={banner.title} className={styles.thumbnail} />
+                <img src={getImageUrl(banner.image_url)} alt={banner.title} className={styles.thumbnail} />
                 <div className={styles.cardActions}>
                   <button className={styles.actionBtn} onClick={() => handleEdit(banner)} title="Edit">
                     <Edit2 size={16} />

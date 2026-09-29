@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import Section from '@/components/Section';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -24,10 +24,10 @@ export default function JoinPage() {
 
   useEffect(() => {
     async function fetchInitialData() {
-      const { data: settingsData } = await supabase.from('company_settings').select('*').eq('id', 1).single();
+      const settingsData = await api.getSettings();
       if (settingsData) setSettings(settingsData);
 
-      const { data: branchesData } = await supabase.from('branches').select('id, name').eq('is_active', true).order('name');
+      const branchesData = await api.getBranches();
       if (branchesData) setBranches(branchesData);
     }
     fetchInitialData();

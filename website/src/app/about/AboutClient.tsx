@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { Leaf, Sprout, Heart, Target, ArrowRight, ShieldCheck, Users, Globe } from 'lucide-react';
 import Section from '@/components/Section';
 import { motion } from 'framer-motion';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 
 export default function AboutPage() {
   const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
     async function fetchSettings() {
-      const { data } = await supabase.from('company_settings').select('*').eq('id', 1).single();
+      const data = await api.getSettings();
       if (data) setSettings(data);
     }
     fetchSettings();

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { adminApi } from '@/lib/api';
 import styles from './Settings.module.css';
 
 export default function SettingsManager() {
@@ -14,7 +14,9 @@ export default function SettingsManager() {
     instagramLink: '',
     youtubeLink: '',
     homePageHeroText: '',
-    aboutUsMission: ''
+    aboutUsMission: '',
+    totalFarmers: 5000,
+    districtsCount: 12
   });
 
   const [saving, setSaving] = useState(false);
@@ -26,50 +28,57 @@ export default function SettingsManager() {
 
   const fetchSettings = async () => {
     setLoading(true);
-    const { data } = await supabase.from('company_settings').select('*').eq('id', 1).single();
-    if (data) {
-      setFormData({
-        companyName: data.company_name || '',
-        contactEmail: data.primary_email || '',
-        contactPhone: data.primary_phone || '',
-        whatsappNumber: data.whatsapp_number || '',
-        headOfficeAddress: data.head_office_address || '',
-        facebookLink: data.facebook_link || '',
-        instagramLink: data.instagram_link || '',
-        youtubeLink: data.youtube_link || '',
-        homePageHeroText: data.tagline || '',
-        aboutUsMission: data.mission || ''
-      });
+    try {
+      const data = await adminApi.getSettings();
+      if (data) {
+        setFormData({
+          companyName: data.company_name || '',
+          contactEmail: data.primary_email || '',
+          contactPhone: data.primary_phone || '',
+          whatsappNumber: data.whatsapp_number || '',
+          headOfficeAddress: data.head_office_address || '',
+          facebookLink: data.facebook_link || '',
+          instagramLink: data.instagram_link || '',
+          youtubeLink: data.youtube_link || '',
+          homePageHeroText: data.tagline || '',
+          aboutUsMission: data.mission || '',
+          totalFarmers: data.total_farmers || 5000,
+          districtsCount: data.districts_count || 12
+        });
+      }
+    } catch (err: any) {
+      console.error('Fetch settings error:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     
-    const { error } = await supabase.from('company_settings').upsert({
-      id: 1,
-      company_name: formData.companyName,
-      primary_email: formData.contactEmail,
-      primary_phone: formData.contactPhone,
-      whatsapp_number: formData.whatsappNumber,
-      head_office_address: formData.headOfficeAddress,
-      facebook_link: formData.facebookLink,
-      instagram_link: formData.instagramLink,
-      youtube_link: formData.youtubeLink,
-      tagline: formData.homePageHeroText,
-      mission: formData.aboutUsMission,
-      updated_at: new Date().toISOString()
-    });
-
-    setSaving(false);
-    if (!error) {
+    try {
+      await adminApi.updateSettings({
+        company_name: formData.companyName,
+        primary_email: formData.contactEmail,
+        primary_phone: formData.contactPhone,
+        whatsapp_number: formData.whatsappNumber,
+        head_office_address: formData.headOfficeAddress,
+        facebook_link: formData.facebookLink,
+        instagram_link: formData.instagramLink,
+        youtube_link: formData.youtubeLink,
+        tagline: formData.homePageHeroText,
+        mission: formData.aboutUsMission,
+        total_farmers: formData.totalFarmers,
+        districts_count: formData.districtsCount
+      });
       alert('Settings saved successfully!');
-    } else {
-      alert('Error saving settings: ' + error.message);
+    } catch (err: any) {
+      alert('Error saving settings: ' + err.message);
+    } finally {
+      setSaving(false);
     }
-  }
+  };
 
   if (loading) return <div style={{ padding: '2rem' }}>Loading settings...</div>;
 
@@ -121,7 +130,7 @@ export default function SettingsManager() {
         </div>
 
         <div className={styles.card} style={{ marginTop: '2rem' }}>
-          <h2>Page Content (CMS)</h2>
+          <h2>Page Content (CMS) & Statistics</h2>
           <div className={styles.formGroup}>
             <label>Home Page Tagline</label>
             <input value={formData.homePageHeroText} onChange={e => setFormData({...formData, homePageHeroText: e.target.value})} required/>
@@ -129,6 +138,16 @@ export default function SettingsManager() {
           <div className={styles.formGroup}>
             <label>About Us - Mission Statement</label>
             <textarea rows={3} value={formData.aboutUsMission} onChange={e => setFormData({...formData, aboutUsMission: e.target.value})} required></textarea>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className={styles.formGroup}>
+              <label>Total Registered Farmers</label>
+              <input type="number" value={formData.totalFarmers} onChange={e => setFormData({...formData, totalFarmers: parseInt(e.target.value) || 0})} />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Districts Count</label>
+              <input type="number" value={formData.districtsCount} onChange={e => setFormData({...formData, districtsCount: parseInt(e.target.value) || 0})} />
+            </div>
           </div>
           
           <div className={styles.actions}>

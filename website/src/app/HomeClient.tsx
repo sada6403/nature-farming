@@ -7,7 +7,7 @@ import { motion, Variants } from 'framer-motion';
 import { Leaf, Users, ShieldCheck, TrendingUp, ArrowRight, MapPin, Flag, ShoppingBag } from 'lucide-react';
 import Section from '@/components/Section';
 import Button from '@/components/Button';
-import { supabase } from '@/lib/supabase';
+import { api, getImageUrl } from '@/lib/api';
 
 import ProductCard from '@/components/ProductCard';
 import HeroScene from '@/components/3d/HeroScene';
@@ -23,22 +23,18 @@ export default function Home() {
   React.useEffect(() => {
     async function fetchData() {
       // Fetch Settings
-      const { data: sData } = await supabase.from('company_settings').select('*').eq('id', 1).single();
+      const sData = await api.getSettings();
       if (sData) setSettings(sData);
 
       // Fetch Products with categories
-      const { data: pData } = await supabase.from('products').select(`
-        *,
-        product_categories(name)
-      `).eq('is_published', true).order('is_featured', { ascending: false });
-      
+      const pData = await api.getProducts();
       if (pData) {
-        setProducts(pData.map(p => ({
+        setProducts(pData.map((p: any) => ({
           id: p.id,
           name: p.name,
           description: p.description,
           price: p.price,
-          image: p.image_url || '/aloe_soap_product_1776647089967.png',
+          image: getImageUrl(p.image_url),
           category: p.product_categories?.name
         })));
       }
