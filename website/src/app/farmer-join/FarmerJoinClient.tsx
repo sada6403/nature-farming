@@ -16,7 +16,8 @@ export default function JoinPage() {
     phone: '',
     location: '',
     assigned_branch_id: '',
-    experience: ''
+    experience: '',
+    website: ''
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -37,19 +38,27 @@ export default function JoinPage() {
     setLoading(true);
     
     try {
-      const { error } = await supabase.from('inquiries').insert([{ 
-        type: 'farmer_interest', 
-        full_name: formData.name,
-        phone: formData.phone,
-        district: formData.location,
-        assigned_branch_id: formData.assigned_branch_id || null,
-        message: formData.experience
-      }]);
-      
-      if (error) throw error;
+      const response = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'farmer_interest',
+          full_name: formData.name,
+          phone: formData.phone,
+          district: formData.location,
+          assigned_branch_id: formData.assigned_branch_id || null,
+          message: formData.experience,
+          website: formData.website,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || 'Unable to submit application');
+      }
       
       setSuccess(true);
-      setFormData({ name: '', phone: '', location: '', assigned_branch_id: '', experience: '' });
+      setFormData({ name: '', phone: '', location: '', assigned_branch_id: '', experience: '', website: '' });
     } catch (err) {
       console.error('Error submitting application:', err);
       alert('There was an error submitting your application. Please try again later.');
@@ -165,6 +174,16 @@ export default function JoinPage() {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    <input
+                      type="text"
+                      name="website"
+                      value={formData.website}
+                      onChange={e => setFormData({...formData, website: e.target.value})}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      className="hidden"
+                    />
                     <div className="relative">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-2 block ml-1">Full Name</label>
                       <div className="relative group">

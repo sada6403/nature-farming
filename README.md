@@ -17,3 +17,9 @@ This repository contains the full source code for the **Nature Farming** ecosyst
 - Backend/DB: Supabase
 - Icons: Lucide React
 - Animations: Framer Motion
+
+## Production Backend
+
+Use `supabase_production.sql` for the complete database, RLS, storage and admin authorization setup. Public inquiries are validated and rate-limited by the website's `/api/inquiries` server route before being written with the server-only service role.
+
+Setup instructions: [BACKEND-SETUP.md](./BACKEND-SETUP.md)

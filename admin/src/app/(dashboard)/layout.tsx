@@ -31,7 +31,7 @@ export default function DashboardLayout({
         .eq('id', session.user.id)
         .single();
 
-      if (profile?.role !== 'admin') {
+      if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
         await supabase.auth.signOut();
         router.push('/login');
         return;

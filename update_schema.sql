@@ -13,8 +13,8 @@ BEGIN
     END IF;
 END $$;
 
--- 3. Clear existing branches (Optional, based on your requirement to use the Excel list as the master)
-TRUNCATE public.branches CASCADE;
+-- 3. Existing branches are intentionally preserved.
+-- Never truncate production data from a schema migration.
 
 -- 4. Insert branches from Excel data
 -- (This part is better done via the seed script if RLS is off, or we can generate INSERT statements)

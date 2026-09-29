@@ -13,7 +13,8 @@ export default function ContactPage() {
     email: '',
     phone: '',
     subject: '',
-    message: ''
+    message: '',
+    website: ''
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -32,19 +33,27 @@ export default function ContactPage() {
     setLoading(true);
     
     try {
-      const { error } = await supabase.from('inquiries').insert([{ 
-        type: 'contact', 
-        full_name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        subject: formData.subject,
-        message: formData.message
-      }]);
-      
-      if (error) throw error;
+      const response = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact',
+          full_name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+          website: formData.website,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || 'Unable to send message');
+      }
       
       setSuccess(true);
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '', website: '' });
     } catch (err) {
       console.error('Error submitting contact form:', err);
       alert('There was an error sending your message. Please try again later.');
@@ -171,6 +180,16 @@ export default function ContactPage() {
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    <input
+                      type="text"
+                      name="website"
+                      value={formData.website}
+                      onChange={e => setFormData({...formData, website: e.target.value})}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      className="hidden"
+                    />
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="relative">
                         <label className="text-xs font-bold uppercase tracking-widest text-primary/70 mb-2 block ml-1">Full Name</label>

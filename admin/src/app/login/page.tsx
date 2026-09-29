@@ -43,7 +43,7 @@ export default function LoginPage() {
           throw new Error('Could not verify admin status. Please try again.');
         }
 
-        if (profile?.role !== 'admin') {
+        if (!profile || !['admin', 'super_admin'].includes(profile.role)) {
           await supabase.auth.signOut();
           throw new Error('Access denied. Admin privileges required for this account.');
         }

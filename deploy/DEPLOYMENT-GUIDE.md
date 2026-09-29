@@ -1,166 +1,100 @@
 # VPS Deployment Guide
 
-## Architecture
-| App | Internal Port | External Access |
-|-----|--------------|-----------------|
-| Website (Customer) | 3000 | http://72.61.115.222 (port 80) |
-| Admin Panel | 3001 | http://72.61.115.222:8080 |
+This deploys the public website on port 3000 and the admin app on port 3001. Nginx is the only public entry point. Supabase remains the managed PostgreSQL/Auth/Storage backend.
 
----
+## Prerequisites
 
-## Step 1: VPS First-Time Setup
+- Ubuntu 22.04 or newer VPS
+- Node.js 20 or newer, Nginx, PM2 and Git
+- Two DNS records pointing to the VPS, for example `example.com` and `admin.example.com`
+- The production SQL and admin bootstrap in [`../BACKEND-SETUP.md`](../BACKEND-SETUP.md) completed first
 
-SSH into your VPS:
+## First-time server setup
+
 ```bash
-ssh root@72.61.115.222
+sudo apt update
+sudo apt install -y nginx git certbot python3-certbot-nginx
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pm2
+sudo mkdir -p /var/www/faring/{website,admin}
+sudo chown -R "$USER":"$USER" /var/www/faring
 ```
 
-Run these commands on VPS:
+Upload or clone the repository into `/var/www/faring`. Do not commit `.env.local` files. Create them directly on the VPS from the two `.env.example` templates, then protect them:
+
 ```bash
-# Update system
-apt-get update && apt-get upgrade -y
-
-# Install Node.js 20
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
-
-# Install PM2
-npm install -g pm2
-
-# Install Nginx
-apt-get install -y nginx
-
-# Create app folders
-mkdir -p /var/www/faring/website
-mkdir -p /var/www/faring/admin
-
-# Check ports (make sure 80, 3000, 3001, 8080 are free)
-ss -tlnp | grep LISTEN
+chmod 600 /var/www/faring/website/.env.local
+chmod 600 /var/www/faring/admin/.env.local
 ```
 
----
+## Build and run
 
-## Step 2: Upload Files from Windows
-
-Open PowerShell in the `faring` project folder and run:
-
-```powershell
-# Upload website files
-scp -r .\website\src root@72.61.115.222:/var/www/faring/website/
-scp -r .\website\public root@72.61.115.222:/var/www/faring/website/
-scp .\website\package.json root@72.61.115.222:/var/www/faring/website/
-scp .\website\package-lock.json root@72.61.115.222:/var/www/faring/website/
-scp .\website\next.config.ts root@72.61.115.222:/var/www/faring/website/
-scp .\website\tsconfig.json root@72.61.115.222:/var/www/faring/website/
-scp .\website\.env.local root@72.61.115.222:/var/www/faring/website/
-
-# Upload admin files
-scp -r .\admin\src root@72.61.115.222:/var/www/faring/admin/
-scp -r .\admin\public root@72.61.115.222:/var/www/faring/admin/
-scp .\admin\package.json root@72.61.115.222:/var/www/faring/admin/
-scp .\admin\package-lock.json root@72.61.115.222:/var/www/faring/admin/
-scp .\admin\next.config.ts root@72.61.115.222:/var/www/faring/admin/
-scp .\admin\tsconfig.json root@72.61.115.222:/var/www/faring/admin/
-scp .\admin\.env.local root@72.61.115.222:/var/www/faring/admin/
-
-# Upload PM2 config
-scp .\deploy\ecosystem.config.js root@72.61.115.222:/var/www/faring/
-
-# Upload Nginx config
-scp .\deploy\nginx.conf root@72.61.115.222:/etc/nginx/sites-available/faring
-```
-
----
-
-## Step 3: Build & Start Apps on VPS
-
-SSH back into VPS:
-```bash
-ssh root@72.61.115.222
-```
-
-Build website:
 ```bash
 cd /var/www/faring/website
-npm install
+npm ci
 npm run build
-```
 
-Build admin:
-```bash
 cd /var/www/faring/admin
-npm install
+npm ci
 npm run build
+
+cd /var/www/faring
+pm2 startOrReload deploy/ecosystem.config.js --update-env
+pm2 save
+pm2 startup
 ```
 
-Start both with PM2:
+Run the command printed by `pm2 startup` once. The apps listen on loopback through Nginx; do not expose ports 3000 or 3001 in UFW.
+
+## HTTPS and Nginx
+
+First obtain certificates (replace the domains):
+
+```bash
+sudo certbot certonly --nginx -d example.com -d www.example.com
+sudo certbot certonly --nginx -d admin.example.com
+```
+
+Copy `deploy/nginx.production.conf.example` to `/etc/nginx/sites-available/faring`, replace all example domains, enable it, and validate:
+
+```bash
+sudo ln -sfn /etc/nginx/sites-available/faring /etc/nginx/sites-enabled/faring
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw --force enable
+```
+
+## Verify every deployment
+
+```bash
+pm2 status
+curl --fail http://127.0.0.1:3000/api/health
+curl --fail http://127.0.0.1:3001/api/health
+sudo nginx -t
+```
+
+Then test HTTPS, admin login, one public inquiry, product updates and one gallery upload.
+
+## Updating
+
 ```bash
 cd /var/www/faring
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup   # copy and run the command it gives you
+git pull --ff-only
+
+cd website
+npm ci
+npm run build
+
+cd ../admin
+npm ci
+npm run build
+
+cd ..
+pm2 startOrReload deploy/ecosystem.config.js --update-env
 ```
 
----
-
-## Step 4: Setup Nginx
-
-```bash
-# Enable the site
-ln -sf /etc/nginx/sites-available/faring /etc/nginx/sites-enabled/faring
-rm -f /etc/nginx/sites-enabled/default
-
-# Open firewall
-ufw allow 22/tcp
-ufw allow 80/tcp
-ufw allow 8080/tcp
-ufw --force enable
-
-# Test and restart nginx
-nginx -t
-systemctl restart nginx
-```
-
----
-
-## Step 5: Verify
-
-```bash
-# Check apps are running
-pm2 status
-
-# Check nginx is running
-systemctl status nginx
-
-# Test locally on VPS
-curl http://localhost:3000   # website
-curl http://localhost:3001   # admin
-```
-
-Then open in browser:
-- **Customer:** http://72.61.115.222
-- **Admin:** http://72.61.115.222:8080
-
----
-
-## Useful PM2 Commands
-
-```bash
-pm2 status              # see both apps
-pm2 logs faring-website # website logs
-pm2 logs faring-admin   # admin logs
-pm2 restart faring-website
-pm2 restart faring-admin
-pm2 stop all
-pm2 start all
-```
-
-## Re-deploy after code changes
-
-From Windows PowerShell:
-```powershell
-# Upload new files (repeat Step 2)
-# Then on VPS:
-ssh root@72.61.115.222 "cd /var/www/faring/website && npm run build && pm2 restart faring-website"
-ssh root@72.61.115.222 "cd /var/www/faring/admin && npm run build && pm2 restart faring-admin"
-```
+If environment variables changed, rebuild both apps before reloading PM2 because `NEXT_PUBLIC_*` values are embedded at build time.

@@ -79,11 +79,11 @@ export default function InquiriesManager() {
   const markResolved = async (id: string) => {
     const { error } = await supabase
       .from('inquiries')
-      .update({ status: 'resolved' })
+      .update({ status: 'closed' })
       .eq('id', id);
       
     if (!error) {
-      setInquiries(inquiries.map(i => i.id === id ? { ...i, status: 'resolved' } : i));
+      setInquiries(inquiries.map(i => i.id === id ? { ...i, status: 'closed' } : i));
     }
   };
   
@@ -166,7 +166,7 @@ export default function InquiriesManager() {
                 </td>
                 <td>
                   <span style={{ 
-                    color: inquiry.status === 'resolved' ? '#22c55e' : '#f59e0b', 
+                    color: inquiry.status === 'closed' ? '#22c55e' : '#f59e0b', 
                     fontWeight: 700,
                     fontSize: '0.75rem'
                   }}>
@@ -199,7 +199,7 @@ export default function InquiriesManager() {
                         </button>
                       )}
 
-                      {inquiry.status !== 'resolved' && (
+                      {inquiry.status !== 'closed' && (
                         <button 
                           className={`${styles.iconBtn} ${styles.resolve}`}
                           onClick={() => markResolved(inquiry.id)} 
